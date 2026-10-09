@@ -47,7 +47,7 @@ jobs:
       - name: Install against dimos main
         run: |
           uv venv --python 3.12
+          uv pip install "dimos[sim,unitree,cpu] @ git+https://github.com/dimensionalOS/dimos.git@main" numpy pillow pytest
           uv pip install -e ".[dev]" --no-deps
-          uv pip install "dimos @ git+https://github.com/dimensionalOS/dimos.git@main" pytest
       - name: Test
         run: uv run --no-sync pytest -q
