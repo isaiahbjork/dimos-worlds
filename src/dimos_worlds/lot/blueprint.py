@@ -15,7 +15,10 @@ from __future__ import annotations
 
 from dimos.core.coordination.blueprints import autoconnect
 from dimos.navigation.movement_manager.movement_manager import MovementManager
-from dimos.navigation.replanning_a_star.module import ReplanningAStarPlanner
+try:
+    from dimos.navigation.replanning_a_star.module import ReplanningAStarPlanner
+except ModuleNotFoundError:  # DimOS main (after 0.0.14) moved it under navigation/go2/
+    from dimos.navigation.go2.replanning_a_star.module import ReplanningAStarPlanner
 from dimos.robot.unitree.go2.blueprints.basic.unitree_go2_basic import rerun_config
 from dimos.visualization.vis_module import vis_module
 
