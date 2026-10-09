@@ -610,7 +610,9 @@ class SharedWorld:
 def _versions() -> dict[str, str]:
     from importlib.metadata import PackageNotFoundError, version
 
-    out = {"mujoco": mujoco.__version__}
+    import platform
+
+    out = {"mujoco": mujoco.__version__, "platform": f"{platform.system()}-{platform.machine()}"}
     for dist in ("dimos", "onnxruntime", "numpy", "dimos-worlds"):
         try:
             out[dist] = version(dist)

@@ -7,8 +7,9 @@ The world is rebuilt from the log's header (scene + robot specs), every logged c
 landed on, and the world is stepped by hand. Exit status 0 when every logged hash matches, 1 at the first divergence.
 
 What can make an honest replay diverge: a different MuJoCo, ONNX Runtime or numpy build, or another CPU
-architecture (floating point is only bit-identical on the same stack); the header records the versions the run
-used. A scene file that changed since the run is refused (its sha256 is in the header).
+architecture (floating point is only bit-identical on the same stack); the header records the versions and the
+platform (OS-arch) the run used. A log recorded on macOS arm64 diverges on Linux x86_64 at its first state hash,
+and the other way round (checked; both replay clean on the platform they were recorded on). A scene file that changed since the run is refused (its sha256 is in the header).
 """
 from __future__ import annotations
 
@@ -114,7 +115,21 @@ def main(argv: list[str] | None = None) -> int:
         print(f"OK: {res.checked} state hashes match; final state {res.final_hash} at tick {res.ticks}")
         return 0
     print(f"DIVERGED at tick {res.diverged_at} ({res.checked} hashes compared)")
+    here = _here()
+    rec = header.get("versions") or {}
+    diff = {k: (rec.get(k), here.get(k)) for k in here if k in rec and rec.get(k) != here.get(k)}
+    if "platform" not in rec:
+        diff["platform"] = ("not recorded", here["platform"])
+    if diff:
+        print("  recorded vs here: " + ", ".join(f"{k} {a} vs {b}" for k, (a, b) in diff.items())
+              + " (bit-exact replay needs the same stack)")
     return 1
+
+
+def _here() -> dict[str, str]:
+    from dimos_worlds.fleet.world import _versions
+
+    return _versions()
 
 
 if __name__ == "__main__":
