@@ -5,6 +5,7 @@
 - Navigation-level coordination for robots that each run their own DimOS planner (`dimos_worlds.coord`): right of way from planned paths, hold short of a shared stretch, yield to a pocket in head-on meetings, automatic goal retries when a planner gives up, deadlock swap. `traffic_coordinator(ids, name)` builds the DimOS module for any robot ids; `warehouse-fleet` routes goals through it (`{id}/goal_request` -> `{id}/nav_goal`) and publishes `{id}/arrived`.
 - Settling at the goal after the planner reports arrival: the G1 closes position and heading to 0.12 m / 6 degrees, the Go2 its heading.
 - Scripted head-on and crossing scenarios against DimOS's planners (`python -m dimos_worlds.coord.scenarios`), in-process fleet harness (`coord.inproc`).
+- The in-process fleet steps on sim time by default (`coord.stepped`: DimOS's GlobalPlanner and LocalPlanner loops run once per 0.1 s from the world loop, coordinator via `Coordinator.run_once`): same result under any machine load. `--realtime` / `DIMOS_WORLDS_REALTIME=1` keeps the wall-clock variant.
 - Dead-band compensation is explicit per-robot config (`robots.Compensation`, in run log headers; logs from 0.1.0 still replay), switchable with `WarehouseFleetSimConfig.compensate`.
 - Optional arm cell: KUKA iiwa 14 (MuJoCo Menagerie, fetched) on the warehouse pedestal, positional IK pick and place of a tote, `warehouse-arm` blueprint.
 

@@ -111,9 +111,14 @@ Scripted scenarios run the same stack in one process (the world, DimOS's own `Gl
 python -m dimos_worlds.coord.scenarios head-on --runs 5    # aisle A-B, 2.5 m wide: Go2 and G1 start at opposite ends, each bound past the other
 python -m dimos_worlds.coord.scenarios crossing --runs 5   # Go2 east along the cross aisle, G1 south down the 1.6 m east aisle across it
 python -m dimos_worlds.coord.scenarios head-on --no-coord  # the same, planners only
+python -m dimos_worlds.coord.scenarios head-on --realtime  # planner and coordinator threads on the wall clock, as live
 ```
 
-Measured on macOS (Apple Silicon), real time, each goal sent once:
+By default a scenario is stepped on sim time (`coord.stepped`, `coord.inproc`): world ticks, odometry, each planner's local and monitor loop, the coordinator and the costmaps run from one loop in a fixed order, at the live rates, with no threads or sleeps. The same scenario gives the same result on any load (checked with every core busy) and runs faster than real time. Across platforms the physics still differs in the last bits, and the G1 walk is chaotic, so an x86_64 run can take a different path than an arm64 run. `--realtime` (tests: `DIMOS_WORLDS_REALTIME=1`) runs the live timing; its outcome depends on machine load.
+
+Stepped, macOS arm64, start poses jittered by up to 2 cm and 0.02 rad (30 seeds each): head-on 25/30, crossing 29/30, G1 settle 26/30. 8 of the 9 failures are the G1 falling: commanded slower or backwards while it still walks forward (settling after an overshoot, or an in-place turn after walking), it leans forward, speeds up and falls. The unjittered head-on run is one of them, so `test_head_on_in_an_aisle_both_arrive_without_a_resend` fails until the G1 walk is fixed.
+
+Measured earlier on macOS (Apple Silicon), real time, each goal sent once:
 
 | scenario | coordinated | planners only |
 |---|---|---|

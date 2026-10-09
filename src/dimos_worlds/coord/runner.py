@@ -1,4 +1,5 @@
 """Traffic on its own thread: inputs from any thread go through a queue, actions go out through callbacks.
+Without the thread (`run_once`), a caller that steps a simulation drives the same queue on its own clock.
 
 Planner callbacks can fire synchronously inside a call made from here (cancelling a DimOS planner's goal publishes
 goal_reached on the caller's thread), so nothing is dispatched while the state machine is being updated and every
@@ -70,24 +71,52 @@ class Coordinator:
             try:
                 kind, args = self._q.get(timeout=timeout)
                 out += self._handle(kind, args)
-                while True:
-                    kind, args = self._q.get_nowait()
-                    out += self._handle(kind, args)
             except queue.Empty:
                 pass
+            out += self._drain()
             if self._clock() >= next_t:
                 next_t += self._period
-                try:
-                    out += self.traffic.step(self._clock())
-                except Exception:
-                    log.exception("traffic step failed")
-            for a in out:
-                if isinstance(a, Arrived):
-                    self.arrivals.append((self._clock(), a.robot))
-                try:
-                    self._handlers[type(a)](a)
-                except Exception:
-                    log.exception("dispatching %s failed", a)
+                out += self._step()
+            self._dispatch(out)
+
+    def run_once(self, *, step: bool = True, max_rounds: int = 100) -> None:
+        """Synchronous use (no thread; the caller owns the clock): handle every queued input, step the rules if
+        `step`, dispatch, then handle what the dispatch queued (a planner answering a goal) until nothing is left.
+        The same order the loop above gives, without its timing."""
+        out = self._drain()
+        if step:
+            out += self._step()
+        self._dispatch(out)
+        for _ in range(max_rounds):
+            if self._q.empty():
+                return
+            self._dispatch(self._drain())
+        log.warning("coordinator inputs still queued after %d rounds", max_rounds)
+
+    def _drain(self) -> list[Action]:
+        out: list[Action] = []
+        while True:
+            try:
+                kind, args = self._q.get_nowait()
+            except queue.Empty:
+                return out
+            out += self._handle(kind, args)
+
+    def _step(self) -> list[Action]:
+        try:
+            return self.traffic.step(self._clock())
+        except Exception:
+            log.exception("traffic step failed")
+            return []
+
+    def _dispatch(self, out: list[Action]) -> None:
+        for a in out:
+            if isinstance(a, Arrived):
+                self.arrivals.append((self._clock(), a.robot))
+            try:
+                self._handlers[type(a)](a)
+            except Exception:
+                log.exception("dispatching %s failed", a)
 
     def _handle(self, kind: str, args: tuple) -> list[Action]:
         t = self.traffic

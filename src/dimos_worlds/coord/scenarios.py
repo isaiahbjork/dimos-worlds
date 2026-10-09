@@ -3,6 +3,10 @@
     python -m dimos_worlds.coord.scenarios head-on --runs 5
     python -m dimos_worlds.coord.scenarios crossing --runs 5
     python -m dimos_worlds.coord.scenarios head-on --no-coord      # the same without coordination
+    python -m dimos_worlds.coord.scenarios head-on --realtime      # planner threads on the wall clock, as live
+
+Runs are stepped on sim time by default (coord.inproc): the same scenario gives the same result on any machine, and
+the timeout is in sim seconds. --realtime runs the live timing instead; its outcome depends on machine load.
 
 Each run: fresh world, both goals sent once at the start, nothing resent by hand. A run passes when both robots
 report arrival (after settling) within the timeout and stand within 0.5 m and 15 degrees of their goal poses, nobody
@@ -49,10 +53,10 @@ SCENARIOS = {
 }
 
 
-def run(sc: Scenario, *, coordinate: bool = True, verbose: bool = False):  # -> inproc.Outcome
+def run(sc: Scenario, *, coordinate: bool = True, verbose: bool = False, realtime: bool = False):  # -> Outcome
     from dimos_worlds.coord.inproc import InProcessFleet
 
-    fleet = InProcessFleet(sc.specs, coordinate=coordinate)
+    fleet = InProcessFleet(sc.specs, coordinate=coordinate, realtime=realtime)
     try:
         fleet.start()
         for rid, (x, y, yaw) in sc.goals.items():
@@ -80,13 +84,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("scenario", choices=sorted(SCENARIOS))
     ap.add_argument("--runs", type=int, default=1)
     ap.add_argument("--no-coord", action="store_true", help="planners only, no coordinator")
+    ap.add_argument("--realtime", action="store_true", help="wall-clock planner threads (live timing)")
     ap.add_argument("-v", "--verbose", action="store_true", help="print the coordinator's events")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.WARNING)
     sc = SCENARIOS[a.scenario]
     ok = 0
     for i in range(a.runs):
-        out = run(sc, coordinate=not a.no_coord, verbose=a.verbose)
+        out = run(sc, coordinate=not a.no_coord, verbose=a.verbose, realtime=a.realtime)
         good = passed(sc, out)
         ok += good
         parts = []
