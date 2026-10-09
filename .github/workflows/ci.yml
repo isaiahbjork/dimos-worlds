@@ -8,12 +8,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            gl: egl
+          - os: macos-latest
+            gl: ""
     runs-on: ${{ matrix.os }}
     env:
-      MUJOCO_GL: ${{ runner.os == 'Linux' && 'egl' || '' }}
+      MUJOCO_GL: ${{ matrix.gl }}
     steps:
       - uses: actions/checkout@v4
+      - name: EGL libs
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libgles2
       - uses: astral-sh/setup-uv@v5
       - name: Install
         run: |
@@ -30,6 +37,8 @@ jobs:
       MUJOCO_GL: egl
     steps:
       - uses: actions/checkout@v4
+      - name: EGL libs
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libgles2
       - uses: astral-sh/setup-uv@v5
       - name: Install against dimos main
         run: |
