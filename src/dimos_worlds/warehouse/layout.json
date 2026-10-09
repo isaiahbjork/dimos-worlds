@@ -1,0 +1,2397 @@
+{
+ "version": 4,
+ "units": "m",
+ "frame": "origin = SW interior corner; x east, y north, z up",
+ "building": {
+  "size": [
+   30.0,
+   20.0,
+   9.0
+  ],
+  "wall_thickness": 0.2,
+  "eave_height": 8.5,
+  "floor": "polished concrete slab, painted markings"
+ },
+ "shelves": {
+  "A": {
+   "rect": [
+    2.0,
+    16.6,
+    20.9,
+    17.7
+   ],
+   "bay_length": 2.7,
+   "depth": 1.1,
+   "frame_height": 5.0,
+   "beam_z": [
+    0.25,
+    1.85,
+    3.45
+   ],
+   "pick_side": "south",
+   "pick_bay": {
+    "bay": 1,
+    "place_id": "shelf-a",
+    "deck_z": [
+     0.85,
+     0.4
+    ]
+   },
+   "bins": [
+    {
+     "id": "A-01-2",
+     "bay": 1,
+     "level": 2,
+     "center": [
+      3.35,
+      17.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-01-3",
+     "bay": 1,
+     "level": 3,
+     "center": [
+      3.35,
+      17.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-02-1",
+     "bay": 2,
+     "level": 1,
+     "center": [
+      6.05,
+      17.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-02-2",
+     "bay": 2,
+     "level": 2,
+     "center": [
+      6.05,
+      17.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-02-3",
+     "bay": 2,
+     "level": 3,
+     "center": [
+      6.05,
+      17.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-03-1",
+     "bay": 3,
+     "level": 1,
+     "center": [
+      8.75,
+      17.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-03-2",
+     "bay": 3,
+     "level": 2,
+     "center": [
+      8.75,
+      17.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-03-3",
+     "bay": 3,
+     "level": 3,
+     "center": [
+      8.75,
+      17.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-04-1",
+     "bay": 4,
+     "level": 1,
+     "center": [
+      11.45,
+      17.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-04-2",
+     "bay": 4,
+     "level": 2,
+     "center": [
+      11.45,
+      17.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-04-3",
+     "bay": 4,
+     "level": 3,
+     "center": [
+      11.45,
+      17.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-05-1",
+     "bay": 5,
+     "level": 1,
+     "center": [
+      14.15,
+      17.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-05-2",
+     "bay": 5,
+     "level": 2,
+     "center": [
+      14.15,
+      17.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-05-3",
+     "bay": 5,
+     "level": 3,
+     "center": [
+      14.15,
+      17.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-06-1",
+     "bay": 6,
+     "level": 1,
+     "center": [
+      16.85,
+      17.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-06-2",
+     "bay": 6,
+     "level": 2,
+     "center": [
+      16.85,
+      17.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-06-3",
+     "bay": 6,
+     "level": 3,
+     "center": [
+      16.85,
+      17.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-07-1",
+     "bay": 7,
+     "level": 1,
+     "center": [
+      19.55,
+      17.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-07-2",
+     "bay": 7,
+     "level": 2,
+     "center": [
+      19.55,
+      17.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "A-07-3",
+     "bay": 7,
+     "level": 3,
+     "center": [
+      19.55,
+      17.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    }
+   ]
+  },
+  "B": {
+   "rect": [
+    2.0,
+    13.0,
+    20.9,
+    14.1
+   ],
+   "bay_length": 2.7,
+   "depth": 1.1,
+   "frame_height": 5.0,
+   "beam_z": [
+    0.25,
+    1.85,
+    3.45
+   ],
+   "pick_side": "north",
+   "pick_bay": {
+    "bay": 1,
+    "place_id": "shelf-b",
+    "deck_z": [
+     0.85,
+     0.4
+    ]
+   },
+   "bins": [
+    {
+     "id": "B-01-2",
+     "bay": 1,
+     "level": 2,
+     "center": [
+      3.35,
+      13.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-01-3",
+     "bay": 1,
+     "level": 3,
+     "center": [
+      3.35,
+      13.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-02-1",
+     "bay": 2,
+     "level": 1,
+     "center": [
+      6.05,
+      13.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-02-2",
+     "bay": 2,
+     "level": 2,
+     "center": [
+      6.05,
+      13.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-02-3",
+     "bay": 2,
+     "level": 3,
+     "center": [
+      6.05,
+      13.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-03-1",
+     "bay": 3,
+     "level": 1,
+     "center": [
+      8.75,
+      13.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-03-2",
+     "bay": 3,
+     "level": 2,
+     "center": [
+      8.75,
+      13.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-03-3",
+     "bay": 3,
+     "level": 3,
+     "center": [
+      8.75,
+      13.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-04-1",
+     "bay": 4,
+     "level": 1,
+     "center": [
+      11.45,
+      13.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-04-2",
+     "bay": 4,
+     "level": 2,
+     "center": [
+      11.45,
+      13.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-04-3",
+     "bay": 4,
+     "level": 3,
+     "center": [
+      11.45,
+      13.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-05-1",
+     "bay": 5,
+     "level": 1,
+     "center": [
+      14.15,
+      13.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-05-2",
+     "bay": 5,
+     "level": 2,
+     "center": [
+      14.15,
+      13.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-05-3",
+     "bay": 5,
+     "level": 3,
+     "center": [
+      14.15,
+      13.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-06-1",
+     "bay": 6,
+     "level": 1,
+     "center": [
+      16.85,
+      13.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-06-2",
+     "bay": 6,
+     "level": 2,
+     "center": [
+      16.85,
+      13.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-06-3",
+     "bay": 6,
+     "level": 3,
+     "center": [
+      16.85,
+      13.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-07-1",
+     "bay": 7,
+     "level": 1,
+     "center": [
+      19.55,
+      13.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-07-2",
+     "bay": 7,
+     "level": 2,
+     "center": [
+      19.55,
+      13.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "B-07-3",
+     "bay": 7,
+     "level": 3,
+     "center": [
+      19.55,
+      13.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    }
+   ]
+  },
+  "C": {
+   "rect": [
+    2.0,
+    8.6,
+    20.9,
+    9.7
+   ],
+   "bay_length": 2.7,
+   "depth": 1.1,
+   "frame_height": 5.0,
+   "beam_z": [
+    0.25,
+    1.85,
+    3.45
+   ],
+   "pick_side": "south",
+   "pick_bay": {
+    "bay": 1,
+    "place_id": "shelf-c",
+    "deck_z": [
+     0.85,
+     0.4
+    ]
+   },
+   "bins": [
+    {
+     "id": "C-01-2",
+     "bay": 1,
+     "level": 2,
+     "center": [
+      3.35,
+      9.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-01-3",
+     "bay": 1,
+     "level": 3,
+     "center": [
+      3.35,
+      9.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-02-1",
+     "bay": 2,
+     "level": 1,
+     "center": [
+      6.05,
+      9.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-02-2",
+     "bay": 2,
+     "level": 2,
+     "center": [
+      6.05,
+      9.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-02-3",
+     "bay": 2,
+     "level": 3,
+     "center": [
+      6.05,
+      9.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-03-1",
+     "bay": 3,
+     "level": 1,
+     "center": [
+      8.75,
+      9.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-03-2",
+     "bay": 3,
+     "level": 2,
+     "center": [
+      8.75,
+      9.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-03-3",
+     "bay": 3,
+     "level": 3,
+     "center": [
+      8.75,
+      9.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-04-1",
+     "bay": 4,
+     "level": 1,
+     "center": [
+      11.45,
+      9.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-04-2",
+     "bay": 4,
+     "level": 2,
+     "center": [
+      11.45,
+      9.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-04-3",
+     "bay": 4,
+     "level": 3,
+     "center": [
+      11.45,
+      9.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-05-1",
+     "bay": 5,
+     "level": 1,
+     "center": [
+      14.15,
+      9.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-05-2",
+     "bay": 5,
+     "level": 2,
+     "center": [
+      14.15,
+      9.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-05-3",
+     "bay": 5,
+     "level": 3,
+     "center": [
+      14.15,
+      9.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-06-1",
+     "bay": 6,
+     "level": 1,
+     "center": [
+      16.85,
+      9.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-06-2",
+     "bay": 6,
+     "level": 2,
+     "center": [
+      16.85,
+      9.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-06-3",
+     "bay": 6,
+     "level": 3,
+     "center": [
+      16.85,
+      9.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-07-1",
+     "bay": 7,
+     "level": 1,
+     "center": [
+      19.55,
+      9.15,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-07-2",
+     "bay": 7,
+     "level": 2,
+     "center": [
+      19.55,
+      9.15,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "C-07-3",
+     "bay": 7,
+     "level": 3,
+     "center": [
+      19.55,
+      9.15,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    }
+   ]
+  },
+  "D": {
+   "rect": [
+    2.0,
+    5.0,
+    20.9,
+    6.1
+   ],
+   "bay_length": 2.7,
+   "depth": 1.1,
+   "frame_height": 5.0,
+   "beam_z": [
+    0.25,
+    1.85,
+    3.45
+   ],
+   "pick_side": "north",
+   "pick_bay": {
+    "bay": 1,
+    "place_id": "shelf-d",
+    "deck_z": [
+     0.85,
+     0.4
+    ]
+   },
+   "bins": [
+    {
+     "id": "D-01-2",
+     "bay": 1,
+     "level": 2,
+     "center": [
+      3.35,
+      5.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-01-3",
+     "bay": 1,
+     "level": 3,
+     "center": [
+      3.35,
+      5.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-02-1",
+     "bay": 2,
+     "level": 1,
+     "center": [
+      6.05,
+      5.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-02-2",
+     "bay": 2,
+     "level": 2,
+     "center": [
+      6.05,
+      5.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-02-3",
+     "bay": 2,
+     "level": 3,
+     "center": [
+      6.05,
+      5.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-03-1",
+     "bay": 3,
+     "level": 1,
+     "center": [
+      8.75,
+      5.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-03-2",
+     "bay": 3,
+     "level": 2,
+     "center": [
+      8.75,
+      5.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-03-3",
+     "bay": 3,
+     "level": 3,
+     "center": [
+      8.75,
+      5.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-04-1",
+     "bay": 4,
+     "level": 1,
+     "center": [
+      11.45,
+      5.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-04-2",
+     "bay": 4,
+     "level": 2,
+     "center": [
+      11.45,
+      5.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-04-3",
+     "bay": 4,
+     "level": 3,
+     "center": [
+      11.45,
+      5.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-05-1",
+     "bay": 5,
+     "level": 1,
+     "center": [
+      14.15,
+      5.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-05-2",
+     "bay": 5,
+     "level": 2,
+     "center": [
+      14.15,
+      5.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-05-3",
+     "bay": 5,
+     "level": 3,
+     "center": [
+      14.15,
+      5.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-06-1",
+     "bay": 6,
+     "level": 1,
+     "center": [
+      16.85,
+      5.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-06-2",
+     "bay": 6,
+     "level": 2,
+     "center": [
+      16.85,
+      5.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-06-3",
+     "bay": 6,
+     "level": 3,
+     "center": [
+      16.85,
+      5.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-07-1",
+     "bay": 7,
+     "level": 1,
+     "center": [
+      19.55,
+      5.55,
+      0.25
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-07-2",
+     "bay": 7,
+     "level": 2,
+     "center": [
+      19.55,
+      5.55,
+      1.85
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    },
+    {
+     "id": "D-07-3",
+     "bay": 7,
+     "level": 3,
+     "center": [
+      19.55,
+      5.55,
+      3.45
+     ],
+     "size": [
+      2.5,
+      1.0,
+      1.35
+     ]
+    }
+   ]
+  }
+ },
+ "places": [
+  {
+   "id": "shelf-a",
+   "name": "Shelf A",
+   "kind": "shelf",
+   "center": [
+    3.35,
+    17.15
+   ],
+   "size": [
+    2.5,
+    1.1
+   ],
+   "top_z": 0.4,
+   "approach_yaw_deg": 90,
+   "slots": [
+    {
+     "id": "shelf-a-u1",
+     "xyz": [
+      2.6,
+      16.73,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-a-u2",
+     "xyz": [
+      3.35,
+      16.73,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-a-u3",
+     "xyz": [
+      4.1,
+      16.73,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-a-l1",
+     "xyz": [
+      2.6,
+      16.73,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-a-l2",
+     "xyz": [
+      3.35,
+      16.73,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-a-l3",
+     "xyz": [
+      4.1,
+      16.73,
+      0.4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shelf-b",
+   "name": "Shelf B",
+   "kind": "shelf",
+   "center": [
+    3.35,
+    13.55
+   ],
+   "size": [
+    2.5,
+    1.1
+   ],
+   "top_z": 0.4,
+   "approach_yaw_deg": -90,
+   "slots": [
+    {
+     "id": "shelf-b-u1",
+     "xyz": [
+      2.6,
+      13.97,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-b-u2",
+     "xyz": [
+      3.35,
+      13.97,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-b-u3",
+     "xyz": [
+      4.1,
+      13.97,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-b-l1",
+     "xyz": [
+      2.6,
+      13.97,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-b-l2",
+     "xyz": [
+      3.35,
+      13.97,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-b-l3",
+     "xyz": [
+      4.1,
+      13.97,
+      0.4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shelf-c",
+   "name": "Shelf C",
+   "kind": "shelf",
+   "center": [
+    3.35,
+    9.15
+   ],
+   "size": [
+    2.5,
+    1.1
+   ],
+   "top_z": 0.4,
+   "approach_yaw_deg": 90,
+   "slots": [
+    {
+     "id": "shelf-c-u1",
+     "xyz": [
+      2.6,
+      8.73,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-c-u2",
+     "xyz": [
+      3.35,
+      8.73,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-c-u3",
+     "xyz": [
+      4.1,
+      8.73,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-c-l1",
+     "xyz": [
+      2.6,
+      8.73,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-c-l2",
+     "xyz": [
+      3.35,
+      8.73,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-c-l3",
+     "xyz": [
+      4.1,
+      8.73,
+      0.4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shelf-d",
+   "name": "Shelf D",
+   "kind": "shelf",
+   "center": [
+    3.35,
+    5.55
+   ],
+   "size": [
+    2.5,
+    1.1
+   ],
+   "top_z": 0.4,
+   "approach_yaw_deg": -90,
+   "slots": [
+    {
+     "id": "shelf-d-u1",
+     "xyz": [
+      2.6,
+      5.97,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-d-u2",
+     "xyz": [
+      3.35,
+      5.97,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-d-u3",
+     "xyz": [
+      4.1,
+      5.97,
+      0.85
+     ]
+    },
+    {
+     "id": "shelf-d-l1",
+     "xyz": [
+      2.6,
+      5.97,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-d-l2",
+     "xyz": [
+      3.35,
+      5.97,
+      0.4
+     ]
+    },
+    {
+     "id": "shelf-d-l3",
+     "xyz": [
+      4.1,
+      5.97,
+      0.4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "floor",
+   "name": "Floor by the shelves",
+   "kind": "floor",
+   "center": [
+    5.5,
+    15.35
+   ],
+   "size": [
+    7.0,
+    2.5
+   ],
+   "top_z": 0.0,
+   "approach_yaw_deg": 90,
+   "slots": []
+  },
+  {
+   "id": "conveyor",
+   "name": "Conveyor",
+   "kind": "conveyor",
+   "center": [
+    24.5,
+    12.55
+   ],
+   "size": [
+    3.4,
+    0.4
+   ],
+   "top_z": 0.75,
+   "approach_yaw_deg": -90,
+   "slots": [
+    {
+     "id": "conveyor-1",
+     "xyz": [
+      26.0,
+      12.55,
+      0.75
+     ]
+    },
+    {
+     "id": "conveyor-2",
+     "xyz": [
+      25.6,
+      12.55,
+      0.75
+     ]
+    },
+    {
+     "id": "conveyor-3",
+     "xyz": [
+      25.2,
+      12.55,
+      0.75
+     ]
+    },
+    {
+     "id": "conveyor-4",
+     "xyz": [
+      24.8,
+      12.55,
+      0.75
+     ]
+    },
+    {
+     "id": "conveyor-5",
+     "xyz": [
+      24.4,
+      12.55,
+      0.75
+     ]
+    },
+    {
+     "id": "conveyor-6",
+     "xyz": [
+      24.0,
+      12.55,
+      0.75
+     ]
+    },
+    {
+     "id": "conveyor-7",
+     "xyz": [
+      23.6,
+      12.55,
+      0.75
+     ]
+    },
+    {
+     "id": "conveyor-8",
+     "xyz": [
+      23.2,
+      12.55,
+      0.75
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pick-table",
+   "name": "Pick table",
+   "kind": "table",
+   "center": [
+    26.625,
+    12.0
+   ],
+   "size": [
+    0.45,
+    0.8
+   ],
+   "top_z": 0.75,
+   "approach_yaw_deg": 180,
+   "slots": [
+    {
+     "id": "pick-table-1",
+     "xyz": [
+      26.62,
+      11.84,
+      0.75
+     ]
+    },
+    {
+     "id": "pick-table-2",
+     "xyz": [
+      26.62,
+      12.16,
+      0.75
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pallet-1",
+   "name": "Pallet 1",
+   "kind": "pallet",
+   "center": [
+    23.4,
+    3.6
+   ],
+   "size": [
+    1.2,
+    1.0
+   ],
+   "top_z": 0.144,
+   "approach_yaw_deg": -90,
+   "slots": [
+    {
+     "id": "pallet-1-a1",
+     "xyz": [
+      23.05,
+      3.9,
+      0.144
+     ]
+    },
+    {
+     "id": "pallet-1-a2",
+     "xyz": [
+      23.4,
+      3.9,
+      0.144
+     ]
+    },
+    {
+     "id": "pallet-1-a3",
+     "xyz": [
+      23.75,
+      3.9,
+      0.144
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pallet-2",
+   "name": "Pallet 2",
+   "kind": "pallet",
+   "center": [
+    26.0,
+    11.44
+   ],
+   "size": [
+    0.8,
+    0.6
+   ],
+   "top_z": 0.14,
+   "approach_yaw_deg": 90,
+   "slots": [
+    {
+     "id": "pallet-2-a1",
+     "xyz": [
+      25.84,
+      11.57,
+      0.14
+     ]
+    },
+    {
+     "id": "pallet-2-a2",
+     "xyz": [
+      26.16,
+      11.57,
+      0.14
+     ]
+    },
+    {
+     "id": "pallet-2-a3",
+     "xyz": [
+      25.84,
+      11.31,
+      0.14
+     ]
+    },
+    {
+     "id": "pallet-2-a4",
+     "xyz": [
+      26.16,
+      11.31,
+      0.14
+     ]
+    },
+    {
+     "id": "pallet-2-b1",
+     "xyz": [
+      25.84,
+      11.57,
+      0.26
+     ]
+    },
+    {
+     "id": "pallet-2-b2",
+     "xyz": [
+      26.16,
+      11.57,
+      0.26
+     ]
+    },
+    {
+     "id": "pallet-2-b3",
+     "xyz": [
+      25.84,
+      11.31,
+      0.26
+     ]
+    },
+    {
+     "id": "pallet-2-b4",
+     "xyz": [
+      26.16,
+      11.31,
+      0.26
+     ]
+    }
+   ]
+  },
+  {
+   "id": "charging-spot",
+   "name": "Charging spot",
+   "kind": "dock",
+   "center": [
+    1.0,
+    11.0
+   ],
+   "size": [
+    1.2,
+    1.2
+   ],
+   "top_z": 0.0,
+   "approach_yaw_deg": 0,
+   "slots": []
+  }
+ ],
+ "totes": {
+  "size": [
+   0.3,
+   0.2,
+   0.12
+  ],
+  "mass_kg": 0.8,
+  "initial": [
+   [
+    "tote-01",
+    "shelf-a-u1"
+   ],
+   [
+    "tote-02",
+    "shelf-a-u3"
+   ],
+   [
+    "tote-03",
+    "shelf-b-u2"
+   ],
+   [
+    "tote-04",
+    "shelf-c-u1"
+   ],
+   [
+    "tote-05",
+    "shelf-c-u2"
+   ],
+   [
+    "tote-06",
+    "shelf-c-l3"
+   ],
+   [
+    "tote-07",
+    [
+     4.6,
+     15.1,
+     0.0,
+     0.3
+    ]
+   ],
+   [
+    "tote-08",
+    [
+     6.4,
+     15.5,
+     0.0,
+     -0.4
+    ]
+   ],
+   [
+    "tote-09",
+    "conveyor-1"
+   ],
+   [
+    "tote-10",
+    "conveyor-2"
+   ],
+   [
+    "tote-11",
+    "conveyor-3"
+   ],
+   [
+    "tote-12",
+    "conveyor-4"
+   ],
+   [
+    "tote-13",
+    "conveyor-5"
+   ],
+   [
+    "tote-14",
+    "conveyor-6"
+   ],
+   [
+    "tote-15",
+    "conveyor-7"
+   ],
+   [
+    "tote-16",
+    "shelf-d-l1"
+   ],
+   [
+    "tote-17",
+    "shelf-d-l2"
+   ]
+  ]
+ },
+ "pallets": [
+  {
+   "id": "pallet-1",
+   "place": "pallet-1",
+   "center": [
+    23.4,
+    3.6
+   ],
+   "size": [
+    1.2,
+    1.0,
+    0.144
+   ],
+   "yaw_deg": 0,
+   "load_height": 0.0
+  },
+  {
+   "id": "pallet-2",
+   "place": "pallet-2",
+   "center": [
+    26.0,
+    11.44
+   ],
+   "size": [
+    0.8,
+    0.6,
+    0.14
+   ],
+   "yaw_deg": 0,
+   "load_height": 0.0
+  },
+  {
+   "id": "pallet-3",
+   "place": null,
+   "center": [
+    29.2,
+    3.6
+   ],
+   "size": [
+    1.2,
+    1.0,
+    0.144
+   ],
+   "yaw_deg": 0,
+   "load_height": 1.3
+  },
+  {
+   "id": "pallet-4",
+   "place": null,
+   "center": [
+    27.4,
+    3.6
+   ],
+   "size": [
+    1.2,
+    1.0,
+    0.144
+   ],
+   "yaw_deg": 0,
+   "load_height": 1.0
+  }
+ ],
+ "conveyor": {
+  "id": "conveyor",
+  "rect": [
+   22.8,
+   12.35,
+   26.2,
+   12.75
+  ],
+  "top_z": 0.75,
+  "flow": "+x",
+  "pick_x": 26.0,
+  "pitch": 0.4,
+  "speed_ms": 0.25,
+  "type": "roller, side rails, end stop at pick_x"
+ },
+ "pick_table": {
+  "id": "pick-table",
+  "rect": [
+   26.4,
+   11.6,
+   26.85,
+   12.4
+  ],
+  "top_z": 0.75
+ },
+ "arm_cell": {
+  "pedestal_center": [
+   26.0,
+   12.0
+  ],
+  "pedestal_size": [
+   0.4,
+   0.4
+  ],
+  "pedestal_height": 0.5,
+  "robot": "kuka_iiwa_14 (MuJoCo Menagerie, BSD-3-Clause)",
+  "base_yaw_deg": 0,
+  "reach_m": 0.8,
+  "tool_m": 0.12,
+  "wrist_to_tip_m": 0.246,
+  "clearance_m": 0.15,
+  "transit_offset": [
+   0.4,
+   0.0,
+   0.62
+  ],
+  "reach_targets": {
+   "conveyor": [
+    26.0,
+    12.55,
+    0.87
+   ],
+   "pick_table": [
+    26.62,
+    12.0,
+    0.87
+   ],
+   "pallet-2": [
+    26.0,
+    11.44,
+    0.26
+   ]
+  }
+ },
+ "humanoid": {
+  "robot": "unitree_g1 (MuJoCo Menagerie, BSD-3-Clause)",
+  "home": [
+   1.0,
+   11.0,
+   0.0
+  ],
+  "edge_gap_m": 0.18,
+  "floor_standoff_m": 0.3,
+  "reach_m": 0.62,
+  "reach_z": [
+   0.0,
+   1.05
+  ],
+  "body_radius_m": 0.35
+ },
+ "quadruped": {
+  "robot": "unitree_go1 body (DimOS's Go2 sim body)",
+  "home": [
+   3.0,
+   11.4,
+   0.0
+  ],
+  "body_radius_m": 0.35
+ },
+ "charging": {
+  "id": "charging-spot",
+  "rect": [
+   0.4,
+   10.4,
+   1.6,
+   11.6
+  ],
+  "center": [
+   1.0,
+   11.0
+  ],
+  "dock_wall": "west"
+ },
+ "aisles": [
+  {
+   "id": "aisle-AB",
+   "rect": [
+    2.0,
+    14.1,
+    20.9,
+    16.6
+   ],
+   "width": 2.5
+  },
+  {
+   "id": "aisle-CD",
+   "rect": [
+    2.0,
+    6.1,
+    20.9,
+    8.6
+   ],
+   "width": 2.5
+  },
+  {
+   "id": "aisle-cross",
+   "rect": [
+    2.0,
+    9.7,
+    22.5,
+    13.0
+   ],
+   "width": 3.3
+  },
+  {
+   "id": "aisle-north",
+   "rect": [
+    2.0,
+    17.7,
+    29.4,
+    19.6
+   ],
+   "width": 1.9
+  },
+  {
+   "id": "aisle-south",
+   "rect": [
+    2.0,
+    0.6,
+    21.5,
+    5.0
+   ],
+   "width": 4.4
+  },
+  {
+   "id": "aisle-east",
+   "rect": [
+    20.9,
+    0.6,
+    22.5,
+    19.6
+   ],
+   "width": 1.6
+  },
+  {
+   "id": "aisle-west",
+   "rect": [
+    0.2,
+    0.6,
+    2.0,
+    19.6
+   ],
+   "width": 1.8
+  }
+ ],
+ "bollards": [
+  {
+   "id": "bollard-1",
+   "x": 23.4,
+   "y": 0.9,
+   "r": 0.1,
+   "height": 1.0
+  },
+  {
+   "id": "bollard-2",
+   "x": 29.1,
+   "y": 0.9,
+   "r": 0.1,
+   "height": 1.0
+  }
+ ],
+ "doors": [
+  {
+   "id": "rollup-1",
+   "type": "roll_up",
+   "wall": "south",
+   "rect": [
+    24.0,
+    0.0,
+    28.5,
+    0.0
+   ],
+   "height": 4.5,
+   "open_fraction": {
+    "day": 0.7,
+    "night": 0.0
+   }
+  },
+  {
+   "id": "door-personnel",
+   "type": "personnel",
+   "wall": "west",
+   "rect": [
+    0.0,
+    18.0,
+    0.0,
+    18.9
+   ],
+   "height": 2.1
+  },
+  {
+   "id": "door-exit",
+   "type": "emergency_exit",
+   "wall": "east",
+   "rect": [
+    30.0,
+    6.0,
+    30.0,
+    6.9
+   ],
+   "height": 2.1
+  }
+ ],
+ "cameras": {
+  "cam1": {
+   "name": "Cam 1",
+   "mount": [
+    0.35,
+    0.35,
+    6.0
+   ],
+   "target": [
+    14.0,
+    8.0,
+    0.8
+   ],
+   "lens_mm": 2.8,
+   "hfov_deg": 100,
+   "note": "SW corner, whole floor",
+   "places": [
+    "shelf-c",
+    "shelf-d",
+    "charging-spot"
+   ]
+  },
+  "cam2": {
+   "name": "Cam 2",
+   "mount": [
+    29.65,
+    19.65,
+    6.0
+   ],
+   "target": [
+    16.0,
+    8.0,
+    0.8
+   ],
+   "lens_mm": 2.8,
+   "hfov_deg": 100,
+   "note": "NE corner, racks, cross aisle, conveyor",
+   "places": [
+    "shelf-b",
+    "conveyor",
+    "pick-table"
+   ]
+  },
+  "cam3": {
+   "name": "Cam 3",
+   "mount": [
+    0.35,
+    19.65,
+    6.0
+   ],
+   "target": [
+    8.0,
+    13.0,
+    0.8
+   ],
+   "lens_mm": 2.8,
+   "hfov_deg": 100,
+   "note": "NW corner, aisles A-B and C-D",
+   "places": [
+    "shelf-a",
+    "shelf-b",
+    "floor"
+   ]
+  },
+  "cam4": {
+   "name": "Cam 4",
+   "mount": [
+    29.7,
+    9.5,
+    4.5
+   ],
+   "target": [
+    26.0,
+    12.0,
+    0.8
+   ],
+   "lens_mm": 4.0,
+   "hfov_deg": 80,
+   "note": "east wall: arm cell, conveyor end, pick table, pallet 2",
+   "places": [
+    "conveyor",
+    "pick-table",
+    "pallet-2"
+   ]
+  },
+  "cam5": {
+   "name": "Cam 5",
+   "mount": [
+    29.65,
+    0.35,
+    5.0
+   ],
+   "target": [
+    24.0,
+    4.5,
+    0.6
+   ],
+   "lens_mm": 2.8,
+   "hfov_deg": 100,
+   "note": "SE corner, the dock and outbound pallets",
+   "places": [
+    "pallet-1"
+   ]
+  },
+  "cam6": {
+   "name": "Cam 6",
+   "mount": [
+    0.3,
+    15.35,
+    3.5
+   ],
+   "target": [
+    10.0,
+    15.35,
+    0.5
+   ],
+   "lens_mm": 2.8,
+   "hfov_deg": 100,
+   "note": "west wall, down aisle A-B: both pick faces and the floor",
+   "places": [
+    "shelf-a",
+    "shelf-b",
+    "floor"
+   ]
+  }
+ },
+ "lights": {
+  "high_bay_grid": {
+   "x": [
+    4.5,
+    10.0,
+    15.5,
+    21.0,
+    26.5
+   ],
+   "y": [
+    3.5,
+    10.5,
+    16.5
+   ],
+   "z": 7.6
+  },
+  "modes": {
+   "day": "all on, 100 %, daylight through the open roll-up door",
+   "night": "every other fixture at 8 %, exit signs on"
+  }
+ },
+ "markings": {
+  "aisle_edge": "yellow, 100 mm",
+  "pedestrian_walkway": "green",
+  "pallet_bays": "white boxes",
+  "arm_cell_keepout": [
+   25.05,
+   11.05,
+   26.95,
+   12.95
+  ],
+  "arm_cell_note": "iiwa 14 is a collaborative arm; the hatched band marks its reach"
+ }
+}

@@ -1,0 +1,189 @@
+{
+  "assets": [
+    {
+      "id": "concrete_floor_worn_001",
+      "name": "Concrete Floor Worn 001",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/concrete_floor_worn_001",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Dimitrios Savva, Rico Cilliers",
+      "resolution": "2k",
+      "use": "warehouse slab (polished, worn)"
+    },
+    {
+      "id": "concrete_floor_02",
+      "name": "Concrete Floor 02",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/concrete_floor_02",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "1k",
+      "use": "floor patches and dock apron"
+    },
+    {
+      "id": "painted_concrete",
+      "name": "Painted Concrete",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/painted_concrete",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Dario Barresi, Dimitrios Savva",
+      "resolution": "1k",
+      "use": "interior walls"
+    },
+    {
+      "id": "box_profile_metal_sheet",
+      "name": "Box Profile Metal Sheet",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/box_profile_metal_sheet",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Amal Kumar",
+      "resolution": "1k",
+      "use": "upper wall cladding and roof deck"
+    },
+    {
+      "id": "rough_wood",
+      "name": "Rough Wood",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/rough_wood",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "1k",
+      "use": "wooden pallets"
+    },
+    {
+      "id": "plywood",
+      "name": "Plywood",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/plywood",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "1k",
+      "use": "pick table top"
+    },
+    {
+      "id": "kloofendal_overcast_puresky",
+      "name": "Kloofendal Overcast (Pure Sky)",
+      "kind": "hdri",
+      "source": "https://polyhaven.com/a/kloofendal_overcast_puresky",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Greg Zaal",
+      "resolution": "1k",
+      "use": "daylight outside the open roll-up door"
+    },
+    {
+      "id": "kloppenheim_02_puresky",
+      "name": "Kloppenheim 02 (Pure Sky)",
+      "kind": "hdri",
+      "source": "https://polyhaven.com/a/kloppenheim_02_puresky",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Greg Zaal, Jarod Guest",
+      "resolution": "1k",
+      "use": "night sky outside"
+    },
+    {
+      "id": "cardboard_box_01",
+      "name": "Cardboard Box 01",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/cardboard_box_01",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rahul Chaudhary",
+      "resolution": "1k",
+      "use": "cartons on pallets and in bins"
+    },
+    {
+      "id": "plastic_crate_01",
+      "name": "Plastic Crate 01",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/plastic_crate_01",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "PierreB3D",
+      "resolution": "1k",
+      "use": "totes"
+    },
+    {
+      "id": "plastic_crate_02",
+      "name": "Plastic Crate 02",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/plastic_crate_02",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Fabi_G",
+      "resolution": "1k",
+      "use": "totes (large)"
+    },
+    {
+      "id": "korean_fire_extinguisher_01",
+      "name": "Korean Fire Extinguisher 01",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/korean_fire_extinguisher_01",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "UM JOORIN",
+      "resolution": "1k",
+      "use": "fire extinguishers on columns"
+    },
+    {
+      "id": "fire_alarm",
+      "name": "Fire Alarm",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/fire_alarm",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Slinc",
+      "resolution": "1k",
+      "use": "fire alarm pull station"
+    },
+    {
+      "id": "WetFloorSign_01",
+      "name": "Wet Floor Sign 01",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/WetFloorSign_01",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Fran Calvente",
+      "resolution": "1k",
+      "use": "floor sign near the dock"
+    },
+    {
+      "id": "menagerie_unitree_g1",
+      "name": "unitree_g1",
+      "kind": "robot",
+      "source": "https://github.com/google-deepmind/mujoco_menagerie/tree/main/unitree_g1",
+      "license": "BSD-3-Clause",
+      "license_url": "https://github.com/google-deepmind/mujoco_menagerie/blob/main/unitree_g1/LICENSE",
+      "author": "Unitree Robotics (HangZhou YuShu Technology)",
+      "use": "G1 humanoid scale placeholder",
+      "menagerie_dir": "unitree_g1"
+    },
+    {
+      "id": "menagerie_kuka_iiwa_14",
+      "name": "kuka_iiwa_14",
+      "kind": "robot",
+      "source": "https://github.com/google-deepmind/mujoco_menagerie/tree/main/kuka_iiwa_14",
+      "license": "BSD-3-Clause",
+      "license_url": "https://github.com/google-deepmind/mujoco_menagerie/blob/main/kuka_iiwa_14/LICENSE",
+      "author": "Drake (Toyota Research Institute) via MuJoCo Menagerie",
+      "use": "iiwa 14 arm on a pedestal",
+      "menagerie_dir": "kuka_iiwa_14"
+    },
+    {
+      "id": "procedural",
+      "name": "Procedural geometry",
+      "kind": "procedural",
+      "source": "src/dimos_worlds/warehouse/render/build_scene.py",
+      "license": "Apache-2.0 (this repo)",
+      "author": "this repo",
+      "use": "building shell, racking, pallets, conveyor, pick table, lights, signage, floor markings"
+    }
+  ]
+}

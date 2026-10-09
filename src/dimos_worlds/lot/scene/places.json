@@ -1,0 +1,14 @@
+[
+  {"id": "front-gate", "name": "Front gate", "kind": "gate", "pose": {"x": -7.0, "y": -24.5}, "robot_pose": {"x": -7.0, "y": -22.5}, "camera": "cam1"},
+  {"id": "gate-2", "name": "Gate 2", "kind": "gate", "pose": {"x": -38.5, "y": -11.0}, "camera": "cam2"},
+  {"id": "service-bay-doors", "name": "Service bay doors", "kind": "building", "pose": {"x": 21.0, "y": -6.0}, "camera": "cam3"},
+  {"id": "row-a", "name": "Row A", "kind": "vehicles", "pose": {"x": 0.0, "y": 12.0}, "camera": "cam5"},
+  {"id": "row-b", "name": "Row B", "kind": "vehicles", "pose": {"x": 0.0, "y": 4.0}, "camera": "cam5"},
+  {"id": "row-c", "name": "Row C", "kind": "vehicles", "pose": {"x": 0.0, "y": -4.0}, "camera": "cam4"},
+  {"id": "row-d", "name": "Row D", "kind": "vehicles", "pose": {"x": -2.0, "y": -17.0}, "camera": "cam4"},
+  {"id": "fuel-tank", "name": "Fuel tank", "kind": "structure", "pose": {"x": -27.0, "y": -5.0}, "camera": "cam2"},
+  {"id": "office-windows", "name": "Office windows", "kind": "building", "pose": {"x": -26.0, "y": -12.0}, "camera": "cam2"},
+  {"id": "north-fence", "name": "North fence", "kind": "fence", "pose": {"x": -8.0, "y": 23.5}, "camera": "cam6"},
+  {"id": "east-fence", "name": "East fence", "kind": "fence", "pose": {"x": 38.5, "y": -4.0}, "camera": "cam3"},
+  {"id": "south-fence", "name": "South fence", "kind": "fence", "pose": {"x": -12.0, "y": -23.0}, "camera": "cam1"}
+]

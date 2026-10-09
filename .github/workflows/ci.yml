@@ -1,0 +1,40 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      MUJOCO_GL: ${{ runner.os == 'Linux' && 'egl' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install
+        run: |
+          uv venv --python 3.12
+          uv pip install -e ".[dev]"
+      - name: Test
+        run: uv run --no-sync pytest -q
+
+  dimos-main:
+    # Tracks DimOS main. Allowed to fail.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      MUJOCO_GL: egl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install against dimos main
+        run: |
+          uv venv --python 3.12
+          uv pip install -e ".[dev]" --no-deps
+          uv pip install "dimos @ git+https://github.com/dimensionalOS/dimos.git@main" pytest
+      - name: Test
+        run: uv run --no-sync pytest -q

@@ -1,0 +1,97 @@
+{
+  "places": [
+    {
+      "id": "shelf-a",
+      "name": "Shelf A",
+      "kind": "point",
+      "x": 3.35,
+      "y": 16.42
+    },
+    {
+      "id": "shelf-b",
+      "name": "Shelf B",
+      "kind": "point",
+      "x": 3.35,
+      "y": 14.28
+    },
+    {
+      "id": "shelf-c",
+      "name": "Shelf C",
+      "kind": "point",
+      "x": 3.35,
+      "y": 8.42
+    },
+    {
+      "id": "shelf-d",
+      "name": "Shelf D",
+      "kind": "point",
+      "x": 3.35,
+      "y": 6.28
+    },
+    {
+      "id": "floor",
+      "name": "Floor by the shelves",
+      "kind": "point",
+      "x": 5.5,
+      "y": 15.05
+    },
+    {
+      "id": "conveyor",
+      "name": "Conveyor",
+      "kind": "point",
+      "x": 24.5,
+      "y": 12.93
+    },
+    {
+      "id": "pick-table",
+      "name": "Pick table",
+      "kind": "point",
+      "x": 27.03,
+      "y": 12.0
+    },
+    {
+      "id": "pallet-1",
+      "name": "Pallet 1",
+      "kind": "point",
+      "x": 23.4,
+      "y": 4.28
+    },
+    {
+      "id": "pallet-2",
+      "name": "Pallet 2",
+      "kind": "point",
+      "x": 26.0,
+      "y": 10.96
+    },
+    {
+      "id": "charging-spot",
+      "name": "Charging spot",
+      "kind": "point",
+      "x": 1.0,
+      "y": 11.0
+    },
+    {
+      "id": "arm-cell",
+      "name": "Arm cell",
+      "kind": "stay",
+      "points": [
+        {
+          "x": 25.05,
+          "y": 11.05
+        },
+        {
+          "x": 26.95,
+          "y": 11.05
+        },
+        {
+          "x": 26.95,
+          "y": 12.95
+        },
+        {
+          "x": 25.05,
+          "y": 12.95
+        }
+      ]
+    }
+  ]
+}

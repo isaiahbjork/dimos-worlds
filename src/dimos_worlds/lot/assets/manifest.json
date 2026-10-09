@@ -1,0 +1,190 @@
+{
+  "assets": [
+    {
+      "id": "worn_asphalt",
+      "name": "Worn Asphalt",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/worn_asphalt",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Amal Kumar",
+      "resolution": "2k",
+      "use": "lot surface (worn asphalt with patches)"
+    },
+    {
+      "id": "asphalt_02",
+      "name": "Asphalt 02",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/asphalt_02",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "2k",
+      "use": "drive lanes and street outside the fence"
+    },
+    {
+      "id": "concrete_floor_worn_001",
+      "name": "Concrete Floor Worn 001",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/concrete_floor_worn_001",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Dimitrios Savva, Rico Cilliers",
+      "resolution": "1k",
+      "use": "pads, curbs, wheel stops, sidewalk"
+    },
+    {
+      "id": "corrugated_iron_02",
+      "name": "Corrugated Iron 02",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/corrugated_iron_02",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Jenelle van Heerden, Sergej Majboroda",
+      "resolution": "1k",
+      "use": "service bay walls"
+    },
+    {
+      "id": "painted_plaster_wall",
+      "name": "Painted Plaster Wall",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/painted_plaster_wall",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Amal Kumar",
+      "resolution": "1k",
+      "use": "office walls"
+    },
+    {
+      "id": "kloppenheim_02_puresky",
+      "name": "Kloppenheim 02 (Pure Sky)",
+      "kind": "hdri",
+      "source": "https://polyhaven.com/a/kloppenheim_02_puresky",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Greg Zaal, Jarod Guest",
+      "resolution": "2k",
+      "use": "night sky (stars, faint skyglow); low strength"
+    },
+    {
+      "id": "kloofendal_overcast_puresky",
+      "name": "Kloofendal Overcast (Pure Sky)",
+      "kind": "hdri",
+      "source": "https://polyhaven.com/a/kloofendal_overcast_puresky",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Greg Zaal",
+      "resolution": "2k",
+      "use": "day-ish overcast sky for --light day"
+    },
+    {
+      "id": "modular_chainlink_fence",
+      "name": "Modular Chainlink Fence",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/modular_chainlink_fence",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "James Ray Cock, Amal Kumar",
+      "resolution": "1k",
+      "use": "chain-link wire material (alpha + normal maps) on fence and gate fabric"
+    },
+    {
+      "id": "rollershutter_door",
+      "name": "Rollershutter Door",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/rollershutter_door",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "MP",
+      "resolution": "1k",
+      "use": "service bay roll-up doors"
+    },
+    {
+      "id": "metal_trash_can",
+      "name": "Metal Trash Can",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/metal_trash_can",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "GurJas Studios",
+      "resolution": "1k",
+      "use": "trash can by the office door"
+    },
+    {
+      "id": "exterior_aircon_unit",
+      "name": "Exterior Aircon Unit",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/exterior_aircon_unit",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Monsta3D",
+      "resolution": "1k",
+      "use": "rooftop / wall AC units on the office"
+    },
+    {
+      "id": "covered_car",
+      "name": "Covered Car",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/covered_car",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "MP",
+      "resolution": "1k",
+      "use": "covered vehicle in the back row"
+    },
+    {
+      "id": "utility_box_01",
+      "name": "Utility Box 01",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/utility_box_01",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "James Ray Cock",
+      "resolution": "1k",
+      "use": "electrical cabinet by the service bay"
+    },
+    {
+      "id": "old_tyre",
+      "name": "Old Tyre",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/old_tyre",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "MP",
+      "resolution": "1k",
+      "use": "used tyres stacked by the service bay"
+    },
+    {
+      "id": "barrel_03",
+      "name": "Barrel 03",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/barrel_03",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Serhii Khromov",
+      "resolution": "1k",
+      "use": "oil drums by the fuel tank"
+    },
+    {
+      "id": "fire_hydrant",
+      "name": "Fire Hydrant",
+      "kind": "model",
+      "source": "https://polyhaven.com/a/fire_hydrant",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Gon\u00e7alo Fel\u00edcio",
+      "resolution": "1k",
+      "use": "hydrant outside the front fence"
+    },
+    {
+      "id": "human_base_meshes",
+      "name": "Human Base Meshes bundle v1.4.1",
+      "kind": "bundle",
+      "source": "https://www.blender.org/download/demo-files/#assets",
+      "download": "https://download.blender.org/demo/asset-bundles/human-base-meshes/human-base-meshes-bundle-v1.4.1.zip",
+      "license": "CC0-1.0",
+      "author": "Blender Studio (Blender Foundation)",
+      "use": "realistic male body mesh for the intruder; rigged and posed in blender/build_scene.py"
+    }
+  ]
+}

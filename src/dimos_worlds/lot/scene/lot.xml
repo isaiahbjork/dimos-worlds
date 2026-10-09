@@ -1,0 +1,578 @@
+<mujoco model="night-vehicle-lot">
+  <compiler angle="radian" autolimits="true"/>
+  <visual>
+    <global offwidth="1664" offheight="936" azimuth="90" elevation="-20"/>
+    <headlight ambient="0.3 0.3 0.32" diffuse="0.2 0.2 0.22" specular="0 0 0"/>
+    <quality shadowsize="4096" offsamples="4"/>
+    <map znear="0.05" zfar="400" force="0.1"/>
+  </visual>
+  <asset>
+    <texture name="sky" type="skybox" builtin="gradient" rgb1="0.06 0.07 0.10" rgb2="0.01 0.01 0.02" width="512" height="512"/>
+    <texture name="asphalt" type="2d" builtin="checker" rgb1="0.11 0.11 0.12" rgb2="0.10 0.10 0.11" width="256" height="256" mark="random" markrgb="0.2 0.2 0.2" random="0.06"/>
+    <material name="asphalt" texture="asphalt" texrepeat="18 14" texuniform="true" reflectance="0.04" specular="0.1" shininess="0.1"/>
+  </asset>
+  <worldbody>
+    <light name="moon" directional="true" dir="0.3 0.4 -1" diffuse="0.05 0.06 0.09" specular="0 0 0" castshadow="false"/>
+    <geom name="ground" type="plane" pos="0 0 0" size="200 200 1" material="asphalt" friction="0.9 0.005 0.0001"/>
+    <light name="pole-1" pos="-14 8 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-2" pos="14 8 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-3" pos="-14 -8 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-4" pos="14 -8 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-5" pos="-4 21.5 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-6" pos="18 21.5 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-7" pos="21 -16.5 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-8" pos="-2 -19.5 7.3" dir="0 0 -1" diffuse="1 0.9 0.8" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <light name="pole-9" pos="-38 -4 7.3" dir="0 0 -1" diffuse="1 0.6 0.25" specular="0 0 0" cutoff="70" exponent="4" attenuation="1 0 0.006" castshadow="true"/>
+    <geom type="box" pos="-10.8 12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-7.2 12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-3.6 12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="0 12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="3.6 12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="7.2 12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="10.8 12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-10.8 4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-7.2 4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-3.6 4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="0 4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="3.6 4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="7.2 4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="10.8 4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-10.8 -4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-7.2 -4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-3.6 -4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="0 -4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="3.6 -4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="7.2 -4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="10.8 -4 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-10.8 -12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-7.2 -12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="-3.6 -12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="0 -12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="3.6 -12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="7.2 -12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="10.8 -12 0.002" size="0.05 2.75 0.002" rgba="0.62 0.62 0.6 1" contype="0" conaffinity="0"/>
+    <geom type="box" pos="0 25 1.395" size="40.02 0.025 1.395" rgba="0.55 0.57 0.6 0.25" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 25 0 -40 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-37.04 25 0 -37.04 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-34.07 25 0 -34.07 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-31.11 25 0 -31.11 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-28.15 25 0 -28.15 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-25.19 25 0 -25.19 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-22.22 25 0 -22.22 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-19.26 25 0 -19.26 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-16.3 25 0 -16.3 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-13.33 25 0 -13.33 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-10.37 25 0 -10.37 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-7.407 25 0 -7.407 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-4.444 25 0 -4.444 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-1.481 25 0 -1.481 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="1.481 25 0 1.481 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="4.444 25 0 4.444 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="7.407 25 0 7.407 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="10.37 25 0 10.37 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="13.33 25 0 13.33 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="16.3 25 0 16.3 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="19.26 25 0 19.26 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="22.22 25 0 22.22 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="25.19 25 0 25.19 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="28.15 25 0 28.15 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="31.11 25 0 31.11 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="34.07 25 0 34.07 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="37.04 25 0 37.04 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 25 0 40 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="40 0 1.395" size="0.025 25.02 1.395" rgba="0.55 0.57 0.6 0.25" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -25 0 40 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -22.06 0 40 -22.06 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -19.12 0 40 -19.12 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -16.18 0 40 -16.18 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -13.24 0 40 -13.24 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -10.29 0 40 -10.29 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -7.353 0 40 -7.353 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -4.412 0 40 -4.412 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -1.471 0 40 -1.471 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 1.471 0 40 1.471 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 4.412 0 40 4.412 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 7.353 0 40 7.353 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 10.29 0 40 10.29 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 13.24 0 40 13.24 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 16.18 0 40 16.18 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 19.12 0 40 19.12 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 22.06 0 40 22.06 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 25 0 40 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-25 -25 1.395" size="15.03 0.025 1.395" rgba="0.55 0.57 0.6 0.25" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -25 0 -40 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-37 -25 0 -37 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-34 -25 0 -34 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-31 -25 0 -31 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-28 -25 0 -28 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-25 -25 0 -25 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-22 -25 0 -22 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-19 -25 0 -19 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-16 -25 0 -16 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-13 -25 0 -13 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-10 -25 0 -10 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="18 -25 1.395" size="22.02 0.025 1.395" rgba="0.55 0.57 0.6 0.25" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-4 -25 0 -4 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-1.067 -25 0 -1.067 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="1.867 -25 0 1.867 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="4.8 -25 0 4.8 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="7.733 -25 0 7.733 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="10.67 -25 0 10.67 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="13.6 -25 0 13.6 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="16.53 -25 0 16.53 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="19.47 -25 0 19.47 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="22.4 -25 0 22.4 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="25.33 -25 0 25.33 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="28.27 -25 0 28.27 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="31.2 -25 0 31.2 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="34.13 -25 0 34.13 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="37.07 -25 0 37.07 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="40 -25 0 40 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-40 8.5 1.395" size="0.025 16.52 1.395" rgba="0.55 0.57 0.6 0.25" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 25 0 -40 25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 22 0 -40 22 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 19 0 -40 19 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 16 0 -40 16 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 13 0 -40 13 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 10 0 -40 10 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 7 0 -40 7 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 4 0 -40 4 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 1 0 -40 1 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -2 0 -40 -2 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -5 0 -40 -5 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -8 0 -40 -8 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-40 -19.5 1.395" size="0.025 5.525 1.395" rgba="0.55 0.57 0.6 0.25" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -14 0 -40 -14 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -16.75 0 -40 -16.75 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -19.5 0 -40 -19.5 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -22.25 0 -40 -22.25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -25 0 -40 -25 2.5" size="0.03" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <body name="front-gate" mocap="true" pos="-10 -24.85 0">
+      <geom type="box" pos="1.8 0 1.25" size="4.23 0.03 1.17" rgba="0.5 0.52 0.55 0.6" mass="150" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="gate-2" mocap="true" pos="-40 -14 0">
+      <geom type="box" pos="0 3 1.25" size="0.03 3.03 1.17" rgba="0.5 0.52 0.55 0.6" mass="150" friction="0.9 0.005 0.0001"/>
+    </body>
+    <geom type="cylinder" fromto="-10 -25 0 -10 -25 2.6" size="0.05" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-4 -25 0 -4 -25 2.6" size="0.05" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -14 0 -40 -14 2.6" size="0.05" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-40 -8 0 -40 -8 2.6" size="0.05" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom name="office" type="box" pos="-26 -16.7 2.225" size="7 3.9 2.225" rgba="0.55 0.5 0.42 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-31.2 -12.78 1.65" size="0.9 0.015 0.75" rgba="0.06 0.07 0.09 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-28.4 -12.78 1.65" size="0.9 0.015 0.75" rgba="0.6 0.46 0.26 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-25.6 -12.78 1.65" size="0.9 0.015 0.75" rgba="0.06 0.07 0.09 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-23.6 -12.78 1.65" size="0.6 0.015 0.75" rgba="0.6 0.46 0.26 1" friction="0.9 0.005 0.0001"/>
+    <geom name="service-bay" type="box" pos="29 -6 2.8" size="5 5 2.8" rgba="0.52 0.54 0.56 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="23.98 -8.4 1.85" size="0.03 1.5 1.85" rgba="0.3 0.32 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="23.98 -3.6 1.85" size="0.03 1.5 1.85" rgba="0.3 0.32 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-30 -1.6 0.08" size="2.6 2 0.08" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom name="fuel-tank" type="cylinder" fromto="-31.6 -1.6 1 -28.4 -1.6 1" size="0.7" rgba="0.72 0.72 0.7 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-30 -1.6 0.15" size="1.12 0.56 0.15" rgba="0.06 0.06 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-32.8 -3.8 0 -32.8 -3.8 1.1" size="0.085" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-27.2 -3.8 0 -27.2 -3.8 1.1" size="0.085" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-32.8 0.6 0 -32.8 0.6 1.1" size="0.085" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-27.2 0.6 0 -27.2 0.6 1.1" size="0.085" rgba="0.65 0.45 0.02 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-33.6 0.2 0 -33.6 0.2 0.88" size="0.29" rgba="0.5 0.1 0.05 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-33.6 -0.6 0 -33.6 -0.6 0.88" size="0.29" rgba="0.5 0.1 0.05 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-34.3 -0.2 0 -34.3 -0.2 0.88" size="0.29" rgba="0.5 0.1 0.05 1" friction="0.9 0.005 0.0001"/>
+    <geom name="dumpster-0" type="box" pos="-36.4 -22.6 0.7" size="0.92 0.68 0.7" rgba="0.05 0.16 0.08 1" quat="1 0 0 0" friction="0.9 0.005 0.0001"/>
+    <geom name="dumpster-1" type="box" pos="-34.2 -22.6 0.7" size="0.92 0.68 0.7" rgba="0.03 0.06 0.16 1" quat="1 0 0 0" friction="0.9 0.005 0.0001"/>
+    <geom name="dumpster-2" type="box" pos="36.8 -21.6 0.7" size="0.92 0.68 0.7" rgba="0.05 0.16 0.08 1" quat="0.7071 0 0 0.7071" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="35.6 -9.6 0 35.6 -9.6 0.75" size="0.3" rgba="0.03 0.03 0.03 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="36.3 -10.4 0 36.3 -10.4 0.75" size="0.3" rgba="0.03 0.03 0.03 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-14 8 0 -14 8 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-14 8 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="14 8 0 14 8 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="14 8 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-14 -8 0 -14 -8 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-14 -8 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="14 -8 0 14 -8 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="14 -8 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-4 21.5 0 -4 21.5 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-4 21.5 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="18 21.5 0 18 21.5 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="18 21.5 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="21 -16.5 0 21 -16.5 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="21 -16.5 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-2 -19.5 0 -2 -19.5 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-2 -19.5 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-38 -4 0 -38 -4 0.7" size="0.3" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-38 -4 4.15" size="0.075 0.075 3.45" rgba="0.08 0.07 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-17 -20.4 0 -17 -20.4 4.7" size="0.06" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-28 6 0 -28 6 5.3" size="0.06" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="22 14 0 22 14 5.3" size="0.06" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="12 -19.5 0 12 -19.5 5.3" size="0.06" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="0 21.8 0 0 21.8 5.3" size="0.06" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="cylinder" fromto="-24 17 0 -24 17 4.5" size="0.06" rgba="0.5 0.52 0.55 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-17.8 -27.6 2.6" size="0.1 0.1 2.6" rgba="0.06 0.06 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-15.2 -27.6 2.6" size="0.1 0.1 2.6" rgba="0.06 0.06 0.06 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-9 14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-5.4 14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-1.8 14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="1.8 14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="5.4 14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="9 14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-9 1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-5.4 1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-1.8 1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="1.8 1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="5.4 1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="9 1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-9 -1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-5.4 -1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-1.8 -1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="1.8 -1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="5.4 -1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="9 -1.8 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-9 -14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-5.4 -14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="-1.8 -14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="1.8 -14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="5.4 -14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <geom type="box" pos="9 -14.2 0.065" size="0.9 0.08 0.065" rgba="0.36 0.36 0.35 1" friction="0.9 0.005 0.0001"/>
+    <camera name="cam1" pos="-16.71 -20.55 4.277" xyaxes="-0.4551 -0.8904 0 0.3134 -0.1602 0.936" fovy="71.98"/>
+    <camera name="cam2" pos="-28.08 5.669 4.913" xyaxes="-0.9749 0.2228 0 -0.05531 -0.242 0.9687" fovy="54.18"/>
+    <camera name="cam3" pos="22.13 13.68 4.934" xyaxes="-0.9255 -0.3786 0 0.07194 -0.1759 0.9818" fovy="54.18"/>
+    <camera name="cam4" pos="11.71 -19.33 4.895" xyaxes="0.5125 0.8587 0 -0.2564 0.153 0.9544" fovy="54.18"/>
+    <camera name="cam5" pos="0 21.47 4.88" xyaxes="-1 -0 0 0 -0.3423 0.9396" fovy="54.18"/>
+    <camera name="cam6" pos="-23.68 17.12 4.136" xyaxes="0.3624 -0.932 0 0.1708 0.06642 0.9831" fovy="54.18"/>
+    <site name="spot-1" pos="-9 12 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-2" pos="-5.4 12 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-3" pos="-1.8 12 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-4" pos="1.8 12 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-5" pos="5.4 12 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-6" pos="9 12 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-7" pos="-9 4 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-8" pos="-5.4 4 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-9" pos="-1.8 4 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-10" pos="1.8 4 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-11" pos="5.4 4 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-12" pos="9 4 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-13" pos="-9 -4 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-14" pos="-5.4 -4 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-15" pos="-1.8 -4 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-16" pos="1.8 -4 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-17" pos="5.4 -4 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-18" pos="9 -4 0" quat="6.123e-17 0 0 1" size="0.05" group="5"/>
+    <site name="spot-19" pos="-9 -12 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-20" pos="-5.4 -12 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-21" pos="-1.8 -12 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-22" pos="1.8 -12 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-23" pos="5.4 -12 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="spot-24" pos="9 -12 0" quat="1 0 0 0" size="0.05" group="5"/>
+    <site name="place-front-gate" pos="-7 -24.5 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-gate-2" pos="-38.5 -11 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-service-bay-doors" pos="21 -6 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-row-a" pos="0 12 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-row-b" pos="0 4 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-row-c" pos="0 -4 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-row-d" pos="-2 -17 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-fuel-tank" pos="-27 -5 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-office-windows" pos="-26 -12 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-north-fence" pos="-8 23.5 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-east-fence" pos="38.5 -4 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <site name="place-south-fence" pos="-12 -23 0.02" size="0.15" rgba="0.2 0.6 1 0.5" group="5"/>
+    <body name="veh-1" mocap="true" pos="-9 12 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.35 0.02 0.02 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-2" mocap="true" pos="-5.4 12 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.45 0.47 0.49 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-3" mocap="true" pos="-1.8 12 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.685" size="0.925 2.275 0.365" rgba="0.16 0.17 0.18 1" mass="1360" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.575 1.355" size="0.845 1.475 0.305" rgba="0.06 0.07 0.09 1" mass="170" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.355 0.36 -0.695 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.355 0.36 0.915 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.325 0.36 -0.695 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.325 0.36 0.915 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-4" mocap="true" pos="1.8 12 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.35 0.02 0.02 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-5" mocap="true" pos="5.4 12 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.16 0.17 0.18 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-6" mocap="true" pos="9 12 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.685" size="0.925 2.275 0.365" rgba="0.35 0.02 0.02 1" mass="1360" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.575 1.355" size="0.845 1.475 0.305" rgba="0.06 0.07 0.09 1" mass="170" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.355 0.36 -0.695 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.355 0.36 0.915 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.325 0.36 -0.695 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.325 0.36 0.915 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-7" mocap="true" pos="-9 4 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.74" size="0.99 2.475 0.38" rgba="0.42 0.36 0.26 1" mass="1760" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.625 1.46" size="0.91 1.675 0.34" rgba="0.06 0.07 0.09 1" mass="220" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.98 1.525 0.39 -0.76 1.525 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.76 1.525 0.39 0.98 1.525 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.98 -1.425 0.39 -0.76 -1.425 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.76 -1.425 0.39 0.98 -1.425 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-8" mocap="true" pos="-5.4 4 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.61" size="0.925 2.425 0.37" rgba="0.17 0.11 0.07 1" mass="1280" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.325 1.215" size="0.845 1.075 0.235" rgba="0.06 0.07 0.09 1" mass="160" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.475 0.34 -0.695 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.475 0.34 0.915 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.355 0.34 -0.695 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.355 0.34 0.915 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-9" mocap="true" pos="-1.8 4 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.42 0.36 0.26 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-10" mocap="true" pos="1.8 4 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.8 0.8 0.78 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-11" mocap="true" pos="5.4 4 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.685" size="0.925 2.275 0.365" rgba="0.42 0.36 0.26 1" mass="1360" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.575 1.355" size="0.845 1.475 0.305" rgba="0.06 0.07 0.09 1" mass="170" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.355 0.36 -0.695 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.355 0.36 0.915 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.325 0.36 -0.695 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.325 0.36 0.915 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-12" mocap="true" pos="9 4 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.61" size="0.925 2.425 0.37" rgba="0.35 0.02 0.02 1" mass="1280" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.325 1.215" size="0.845 1.075 0.235" rgba="0.06 0.07 0.09 1" mass="160" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.475 0.34 -0.695 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.475 0.34 0.915 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.355 0.34 -0.695 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.355 0.34 0.915 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-13" mocap="true" pos="-9 -4 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.012 0.012 0.014 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-14" mocap="true" pos="-5.4 -4 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.8 0.8 0.78 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-15" mocap="true" pos="-1.8 -4 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.685" size="0.925 2.275 0.365" rgba="0.45 0.47 0.49 1" mass="1360" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.575 1.355" size="0.845 1.475 0.305" rgba="0.06 0.07 0.09 1" mass="170" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.355 0.36 -0.695 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.355 0.36 0.915 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.325 0.36 -0.695 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.325 0.36 0.915 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-17" mocap="true" pos="5.4 -4 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.8 0.8 0.78 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-18" mocap="true" pos="9 -4 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.685" size="0.925 2.275 0.365" rgba="0.8 0.8 0.78 1" mass="1360" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.575 1.355" size="0.845 1.475 0.305" rgba="0.06 0.07 0.09 1" mass="170" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.355 0.36 -0.695 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.355 0.36 0.915 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.325 0.36 -0.695 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.325 0.36 0.915 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-19" mocap="true" pos="-9 -12 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.65" size="1 2.575 0.37" rgba="0.16 0.17 0.18 1" mass="1600" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.45 1.4" size="0.92 2 0.38" rgba="0.06 0.07 0.09 1" mass="200" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.99 1.595 0.36 -0.77 1.595 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.77 1.595 0.36 0.99 1.595 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.99 -1.435 0.36 -0.77 -1.435 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.77 -1.435 0.36 0.99 -1.435 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-20" mocap="true" pos="-5.4 -12 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.65" size="1 2.575 0.37" rgba="0.16 0.17 0.18 1" mass="1600" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.45 1.4" size="0.92 2 0.38" rgba="0.06 0.07 0.09 1" mass="200" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.99 1.595 0.36 -0.77 1.595 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.77 1.595 0.36 0.99 1.595 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.99 -1.435 0.36 -0.77 -1.435 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.77 -1.435 0.36 0.99 -1.435 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-21" mocap="true" pos="-1.8 -12 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.61" size="0.925 2.425 0.37" rgba="0.012 0.012 0.014 1" mass="1280" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.325 1.215" size="0.845 1.075 0.235" rgba="0.06 0.07 0.09 1" mass="160" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.475 0.34 -0.695 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.475 0.34 0.915 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.355 0.34 -0.695 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.355 0.34 0.915 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-22" mocap="true" pos="1.8 -12 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.625" size="0.9 2.175 0.375" rgba="0.45 0.47 0.49 1" mass="1120" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.6 1.235" size="0.82 1.4 0.235" rgba="0.06 0.07 0.09 1" mass="140" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.89 1.295 0.33 -0.67 1.295 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.67 1.295 0.33 0.89 1.295 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.89 -1.405 0.33 -0.67 -1.405 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.67 -1.405 0.33 0.89 -1.405 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-23" mocap="true" pos="5.4 -12 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.16 0.17 0.18 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-24" mocap="true" pos="9 -12 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.74" size="0.99 2.475 0.38" rgba="0.012 0.012 0.014 1" mass="1760" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.625 1.46" size="0.91 1.675 0.34" rgba="0.06 0.07 0.09 1" mass="220" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.98 1.525 0.39 -0.76 1.525 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.76 1.525 0.39 0.98 1.525 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.98 -1.425 0.39 -0.76 -1.425 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.76 -1.425 0.39 0.98 -1.425 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-disp1" pos="15 -20.6 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.35 0.02 0.02 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-disp2" pos="19.2 -20.6 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.74" size="0.99 2.475 0.38" rgba="0.012 0.012 0.014 1" mass="1760" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.625 1.46" size="0.91 1.675 0.34" rgba="0.06 0.07 0.09 1" mass="220" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.98 1.525 0.39 -0.76 1.525 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.76 1.525 0.39 0.98 1.525 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.98 -1.425 0.39 -0.76 -1.425 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.76 -1.425 0.39 0.98 -1.425 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="55" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-disp3" pos="23.4 -20.6 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.45 0.47 0.49 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-disp4" pos="27.6 -20.6 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.03 0.07 0.2 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-disp5" pos="31.8 -20.6 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.685" size="0.925 2.275 0.365" rgba="0.8 0.8 0.78 1" mass="1360" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.575 1.355" size="0.845 1.475 0.305" rgba="0.06 0.07 0.09 1" mass="170" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.355 0.36 -0.695 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.355 0.36 0.915 1.355 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.325 0.36 -0.695 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.325 0.36 0.915 -1.325 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="42.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-staff1" pos="-36.4 -16.9 0" quat="0.7071 0 0 0.7071">
+      <geom type="box" pos="0 0 0.61" size="0.925 2.425 0.37" rgba="0.16 0.17 0.18 1" mass="1280" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.325 1.215" size="0.845 1.075 0.235" rgba="0.06 0.07 0.09 1" mass="160" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.475 0.34 -0.695 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.475 0.34 0.915 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.355 0.34 -0.695 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.355 0.34 0.915 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-staff2" pos="-36.4 -19.8 0" quat="0.7071 0 0 0.7071">
+      <geom type="box" pos="0 0 0.625" size="0.9 2.175 0.375" rgba="0.03 0.07 0.2 1" mass="1120" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.6 1.235" size="0.82 1.4 0.235" rgba="0.06 0.07 0.09 1" mass="140" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.89 1.295 0.33 -0.67 1.295 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.67 1.295 0.33 0.89 1.295 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.89 -1.405 0.33 -0.67 -1.405 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.67 -1.405 0.33 0.89 -1.405 0.33" size="0.33" rgba="0.03 0.03 0.03 1" mass="35" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-svc1" pos="28 -15.2 0" quat="0.7071 0 0 0.7071">
+      <geom type="box" pos="0 0 0.65" size="1 2.575 0.37" rgba="0.45 0.47 0.49 1" mass="1600" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.45 1.4" size="0.92 2 0.38" rgba="0.06 0.07 0.09 1" mass="200" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.99 1.595 0.36 -0.77 1.595 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.77 1.595 0.36 0.99 1.595 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.99 -1.435 0.36 -0.77 -1.435 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.77 -1.435 0.36 0.99 -1.435 0.36" size="0.36" rgba="0.03 0.03 0.03 1" mass="50" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-svc2" pos="34.5 -15.2 0" quat="0.7071 0 0 0.7071">
+      <geom type="box" pos="0 0 0.61" size="0.925 2.425 0.37" rgba="0.8 0.8 0.78 1" mass="1280" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.325 1.215" size="0.845 1.075 0.235" rgba="0.06 0.07 0.09 1" mass="160" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 1.475 0.34 -0.695 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 1.475 0.34 0.915 1.475 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.915 -1.355 0.34 -0.695 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.695 -1.355 0.34 0.915 -1.355 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="40" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-skid" pos="5 19.8 0" quat="6.123e-17 0 0 1">
+      <geom type="box" pos="0 0 0.75" size="0.915 1.725 0.45" rgba="0.62 0.38 0.02 1" mass="2560" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.25 1.635" size="0.835 0.6 0.435" rgba="0.06 0.07 0.09 1" mass="320" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.905 0.325 0.39 -0.685 0.325 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="80" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.685 0.325 0.39 0.905 0.325 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="80" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.905 -0.625 0.39 -0.685 -0.625 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="80" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.685 -0.625 0.39 0.905 -0.625 0.39" size="0.39" rgba="0.03 0.03 0.03 1" mass="80" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-trailer" pos="10.5 19.8 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.56" size="1.025 2.45 0.06" rgba="0.16 0.17 0.18 1" mass="560" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.015 0.25 0.34 -0.795 0.25 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="17.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.795 0.25 0.34 1.015 0.25 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="17.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.015 -0.39 0.34 -0.795 -0.39 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="17.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.795 -0.39 0.34 1.015 -0.39 0.34" size="0.34" rgba="0.03 0.03 0.03 1" mass="17.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-box" pos="27 20.2 0" quat="0.7071 0 0 0.7071">
+      <geom type="box" pos="0 0 2.075" size="1.225 3.8 1.325" rgba="0.8 0.8 0.78 1" mass="5200" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.215 2.75 0.42 -0.995 2.75 0.42" size="0.42" rgba="0.03 0.03 0.03 1" mass="162.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.995 2.75 0.42 1.215 2.75 0.42" size="0.42" rgba="0.03 0.03 0.03 1" mass="162.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.215 -1.25 0.42 -0.995 -1.25 0.42" size="0.42" rgba="0.03 0.03 0.03 1" mass="162.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.995 -1.25 0.42 1.215 -1.25 0.42" size="0.42" rgba="0.03 0.03 0.03 1" mass="162.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-covered" pos="30.5 5 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.575" size="0.9 2.2 0.375" rgba="0.8 0.8 0.78 1" mass="1200" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 -0.35 1.125" size="0.82 0.95 0.175" rgba="0.06 0.07 0.09 1" mass="150" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.89 1.3 0.3 -0.67 1.3 0.3" size="0.3" rgba="0.03 0.03 0.03 1" mass="37.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.67 1.3 0.3 0.89 1.3 0.3" size="0.3" rgba="0.03 0.03 0.03 1" mass="37.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-0.89 -1.3 0.3 -0.67 -1.3 0.3" size="0.3" rgba="0.03 0.03 0.03 1" mass="37.5" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.67 -1.3 0.3 0.89 -1.3 0.3" size="0.3" rgba="0.03 0.03 0.03 1" mass="37.5" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="veh-x-pick6" pos="17.2 19.6 0" quat="1 0 0 0">
+      <geom type="box" pos="0 0 0.87" size="1.015 2.95 0.39" rgba="0.012 0.012 0.014 1" mass="1920" friction="0.9 0.005 0.0001"/>
+      <geom type="box" pos="0 0.325 1.605" size="0.935 0.875 0.345" rgba="0.06 0.07 0.09 1" mass="240" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 2 0.4 -0.785 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 2 0.4 1.005 2 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="-1.005 -1.68 0.4 -0.785 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+      <geom type="cylinder" fromto="0.785 -1.68 0.4 1.005 -1.68 0.4" size="0.4" rgba="0.03 0.03 0.03 1" mass="60" friction="0.9 0.005 0.0001"/>
+    </body>
+    <body name="person" mocap="true" pos="55 -45 0">
+      <geom type="capsule" fromto="-0.11 0 0.12 -0.11 0 0.85" size="0.085" rgba="0.3 0.3 0.33 1" friction="0.9 0.005 0.0001"/>
+      <geom type="capsule" fromto="0.11 0 0.12 0.11 0 0.85" size="0.085" rgba="0.3 0.3 0.33 1" friction="0.9 0.005 0.0001"/>
+      <geom type="ellipsoid" pos="0 0 1.17" size="0.2 0.13 0.28" rgba="0.3 0.3 0.33 1" friction="0.9 0.005 0.0001"/>
+      <geom type="capsule" fromto="-0.27 0 1.36 -0.3 0 0.84" size="0.06" rgba="0.3 0.3 0.33 1" friction="0.9 0.005 0.0001"/>
+      <geom type="capsule" fromto="0.27 0 1.36 0.3 0 0.84" size="0.06" rgba="0.3 0.3 0.33 1" friction="0.9 0.005 0.0001"/>
+      <geom type="sphere" pos="0 0 1.64" size="0.12" rgba="0.07 0.07 0.08 1" friction="0.9 0.005 0.0001"/>
+    </body>
+  </worldbody>
+</mujoco>

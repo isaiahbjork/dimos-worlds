@@ -1,0 +1,58 @@
+{
+  "alignment": {
+    "rotation_zyx_deg": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": 1.0,
+    "translation": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "y_up": false
+  },
+  "artifact_frames": {
+    "browser_collision": "source",
+    "browser_visual": "source",
+    "mujoco": "dimos_world",
+    "mujoco_binary": "dimos_world"
+  },
+  "artifacts": {
+    "browser_collision": null,
+    "browser_visual": null,
+    "browser_visuals": {},
+    "mujoco_binary": null,
+    "mujoco_composed_binaries": {},
+    "mujoco_scene": "warehouse.xml",
+    "objects": null
+  },
+  "entities": [],
+  "package_dir": ".",
+  "source_path": "dimos_worlds/warehouse/layout.json",
+  "stats": {
+    "cameras": [
+      "cam1",
+      "cam2",
+      "cam3",
+      "cam4",
+      "cam5",
+      "cam6"
+    ],
+    "extent_m": [
+      30.0,
+      20.0
+    ],
+    "name": "warehouse",
+    "places": 10,
+    "places_file": "places.json",
+    "racks": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "totes": 17
+  }
+}
