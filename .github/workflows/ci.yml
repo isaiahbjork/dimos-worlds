@@ -18,9 +18,12 @@ jobs:
       MUJOCO_GL: ${{ matrix.gl }}
     steps:
       - uses: actions/checkout@v4
-      - name: EGL libs
+      - name: System libs (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libgles2
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libgles2 portaudio19-dev
+      - name: System libs (macOS)
+        if: runner.os == 'macOS'
+        run: brew install portaudio
       - uses: astral-sh/setup-uv@v5
       - name: Install
         run: |
@@ -35,10 +38,11 @@ jobs:
     continue-on-error: true
     env:
       MUJOCO_GL: egl
+      DIMOS_ALLOW_MISSING_COCKPIT: "1"
     steps:
       - uses: actions/checkout@v4
-      - name: EGL libs
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libgles2
+      - name: System libs
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libgles2 portaudio19-dev
       - uses: astral-sh/setup-uv@v5
       - name: Install against dimos main
         run: |

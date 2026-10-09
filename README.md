@@ -27,7 +27,7 @@ Early. Targets `dimos==0.0.14`. A CI job tracks DimOS `main` and is allowed to f
 
 ## Install
 
-Python 3.12. Not on PyPI yet; install from a checkout:
+Python 3.12. DimOS's Unitree extra builds `pyaudio`, so install PortAudio first (`brew install portaudio` on macOS, `sudo apt-get install portaudio19-dev` on Debian/Ubuntu). Not on PyPI yet; install from a checkout:
 
 ```
 git clone <this repo> && cd dimos-worlds
