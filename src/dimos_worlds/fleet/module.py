@@ -265,3 +265,18 @@ class RobotAwareCostmaps(Module):
             getattr(self, f"{rid}_costmap").publish(_grid_msg(masks[rid], prior, base.ts))
         with self._lock:
             self._sent = poses
+
+
+# The traffic coordinator for this fleet: between goals and the robots' planners (coord.traffic has the rules).
+from dimos_worlds.coord.module import traffic_coordinator  # noqa: E402
+
+FleetTraffic = traffic_coordinator(ROBOT_IDS, "FleetTraffic")
+
+
+def fleet_agents(compensate: bool = True) -> list[dict[str, Any]]:
+    """FleetTraffic's `agents` config for warehouse_fleet()."""
+    from dataclasses import asdict
+
+    from dimos_worlds.coord.settle import agents_for
+
+    return [asdict(a) for a in agents_for(warehouse_fleet(compensate))]

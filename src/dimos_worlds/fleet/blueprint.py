@@ -1,13 +1,16 @@
-"""`dimos run dimos-worlds.warehouse-fleet`: Go2 + G1 in one warehouse, each with its own planner.
+"""`dimos run dimos-worlds.warehouse-fleet`: Go2 + G1 in one warehouse, each with its own planner, coordinated.
 
     WarehouseFleetSim ──{id}/odom, {id}/color_image, {id}/joint_state──▶
           │ global_costmap (scene prior + rack footprints + stay-outs)
           ▼
     RobotAwareCostmaps ──go2_costmap / g1_costmap (the OTHER robot painted)──▶ planner per robot
+    {id}/goal_request ──▶ FleetTraffic ──{id}/nav_goal──▶ ReplanningAStarPlanner ──{id}/path, {id}/goal_reached──▶
+                          FleetTraffic   (right of way: hold, yield to a pocket, retry; settle at the goal)
     ReplanningAStarPlanner + MovementManager, namespaced go2/ and g1/ ──{id}/cmd_vel──▶ WarehouseFleetSim
 
 Send a goal: publish a PoseStamped on `go2/goal_request` (or `g1/goal_request`), or click a point routed to
-`go2/clicked_point`. The run log (warehouse-fleet-run.jsonl in the working directory) replays with
+`go2/clicked_point`. FleetTraffic forwards it to that robot's planner (`{id}/nav_goal`) and publishes `{id}/arrived`
+when the robot is there. The run log (warehouse-fleet-run.jsonl in the working directory) replays with
 `dimos-worlds-replay warehouse-fleet-run.jsonl`.
 """
 from __future__ import annotations
@@ -20,7 +23,7 @@ from dimos.navigation.movement_manager.movement_manager import MovementManager
 from dimos.navigation.replanning_a_star.module import ReplanningAStarPlanner
 from dimos.visualization.vis_module import vis_module
 
-from dimos_worlds.fleet.module import ROBOT_IDS, RobotAwareCostmaps, WarehouseFleetSim
+from dimos_worlds.fleet.module import ROBOT_IDS, FleetTraffic, RobotAwareCostmaps, WarehouseFleetSim, fleet_agents
 from dimos_worlds.fleet.robots import RobotSpec, warehouse_fleet
 
 
@@ -33,7 +36,12 @@ def _nav(spec: RobotSpec) -> Any:
                                              robot_rotation_diameter=spec.turn_diameter),
             MovementManager.blueprint(),
         )
-        .remappings([(ReplanningAStarPlanner, "global_costmap", f"{rid}_costmap")])
+        .remappings([
+            (ReplanningAStarPlanner, "global_costmap", f"{rid}_costmap"),
+            # goals reach the planner through FleetTraffic only
+            (ReplanningAStarPlanner, "goal_request", "nav_goal"),
+            (ReplanningAStarPlanner, "clicked_point", "nav_clicked_point"),
+        ])
         # the costmap topic stays global so it meets RobotAwareCostmaps' output
         .namespace(rid, expose={f"{rid}_costmap"})
     )
@@ -50,6 +58,9 @@ def _remaps() -> list[tuple[Any, str, str]]:
             (WarehouseFleetSim, f"{rid}_cmd_vel", f"{rid}/cmd_vel"),
             (RobotAwareCostmaps, f"{rid}_odom", f"{rid}/odom"),
         ]
+        rows += [(FleetTraffic, f"{rid}_{port}", f"{rid}/{port}")
+                 for port in ("goal_request", "clicked_point", "odom", "path", "goal_reached", "nav_goal", "cmd_vel",
+                              "arrived")]
     return rows
 
 
@@ -79,6 +90,7 @@ warehouse_fleet_blueprint = (
     autoconnect(
         WarehouseFleetSim.blueprint(),
         RobotAwareCostmaps.blueprint(),
+        FleetTraffic.blueprint(agents=fleet_agents()),
         *[_nav(spec) for spec in warehouse_fleet()],
         vis_module(global_config.viewer, rerun_config=_rerun_config),
     )
