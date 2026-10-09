@@ -5,6 +5,7 @@ import math
 
 import pytest
 
+from dimos_worlds.fleet.robots import Compensation, RobotSpec, warehouse_fleet
 from dimos_worlds.fleet.world import CTRL_DT, SharedWorld, warehouse_world
 from dimos_worlds.warehouse import cell
 
@@ -59,7 +60,7 @@ def test_g1_tracks_cmd_vel_as_a_velocity(world: SharedWorld) -> None:
     """Open loop the G1 policy walks ~1.6x the command, under-turns while walking and drifts sideways; tracked,
     a straight 0.3 m/s command walks ~0.3 m/s straight."""
     g1 = world.bodies["g1"]
-    assert g1.spec.track_velocity and not world.bodies["go2"].spec.track_velocity
+    assert g1.spec.comp.track_velocity and not world.bodies["go2"].spec.comp.track_velocity
     g1.place(6.0, 11.0, 0.0)
     world.set_velocity("g1", 0.3, 0.0, 0.0)
     world.step(int(2.0 / CTRL_DT))
@@ -93,3 +94,28 @@ def test_go2_slow_in_place_turn_is_raised_to_one_that_turns(world: SharedWorld) 
     world.set_velocity("go2", 0.0, 0.0, 0.0)
     assert world.pose("go2")[2] > 0.8
     assert [c["args"]["wz"] for c in world.log.commands() if c["robot"] == "go2" and c["op"] == "velocity"][-2] == 0.3  # logged as sent
+
+
+def test_compensation_is_explicit_config_and_can_be_turned_off() -> None:
+    go2, g1 = warehouse_fleet()
+    assert go2.comp == Compensation(min_vx=0.3, min_wz=0.6, min_pure_turn=0.8)
+    assert g1.comp == Compensation(track_velocity=True)
+    assert not any(s.comp.any for s in warehouse_fleet(compensate=False))
+    # run logs carry it, and logs written before it was grouped (flat keys) still load
+    assert RobotSpec.from_dict(go2.to_dict()) == go2
+    flat = {k: v for k, v in g1.to_dict().items() if k != "comp"} | {"track_velocity": True, "min_vx": 0.0}
+    assert RobotSpec.from_dict(flat) == g1
+
+
+def test_without_compensation_commands_reach_the_policy_as_sent() -> None:
+    w = warehouse_world(warehouse_fleet(compensate=False))
+    try:
+        w.set_velocity("go2", 0.0, 0.0, 0.3)  # compensated, this in-place turn would be raised to 0.8 rad/s
+        assert w.bodies["go2"].cmd.goal.tolist() == pytest.approx([0.0, 0.0, 0.3])
+        g1 = w.bodies["g1"]
+        g1.place(6.0, 11.0, 0.0)
+        w.set_velocity("g1", 0.3, 0.0, 0.0)
+        w.step(int(2.0 / CTRL_DT))
+        assert float(g1.cmd.value[0]) == pytest.approx(0.3)  # not tracked: the command itself, no feed-forward/PI
+    finally:
+        w.close()

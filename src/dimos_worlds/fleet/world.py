@@ -229,7 +229,7 @@ class Body:
                 self._steer(self.route)
                 if self.route.done:
                     self.route = None
-            goal = self._tracked_goal() if (s.track_velocity and self.route is None) else self.cmd.goal
+            goal = self._tracked_goal() if (s.comp.track_velocity and self.route is None) else self.cmd.goal
             lim = np.array([s.acc_vx, s.acc_vx, s.acc_wz]) * CTRL_DT
             self.cmd.value[:] = self.cmd.value + np.clip(goal - self.cmd.value, -lim, lim)
         for _ in range(self.n_substeps):
@@ -292,9 +292,9 @@ class Body:
             wz = float(np.clip(1.2 * err, -s.max_wz, s.max_wz))
             cvx = min(vx / s.cmd_gain, s.max_vx)
             if cvx > 0:
-                cvx = max(cvx, s.min_vx)
+                cvx = max(cvx, s.comp.min_vx)
             if abs(err) > 0.1:
-                wz = math.copysign(max(abs(wz), s.min_wz), wz)
+                wz = math.copysign(max(abs(wz), s.comp.min_wz), wz)
             self.cmd.goal[:] = [cvx, 0.0, wz]
             return
         err = _wrap(tyaw - yaw)
@@ -305,7 +305,7 @@ class Body:
             return
         w = min(0.4, s.max_wz)
         wz = float(np.clip(1.0 * err, -w, w))
-        self.cmd.goal[:] = [0.0, 0.0, math.copysign(max(abs(wz), s.min_wz), wz)]
+        self.cmd.goal[:] = [0.0, 0.0, math.copysign(max(abs(wz), s.comp.min_wz), wz)]
 
 
 # ---------------------------------------------------------------- model building
@@ -470,12 +470,13 @@ class SharedWorld:
         with self.lock:
             body = self._body(robot)
             s = body.spec
-            if s.min_pure_turn and math.hypot(vx, vy) < 0.05 and 0.05 < abs(wz) < s.min_pure_turn:
-                wz_eff = math.copysign(s.min_pure_turn, wz)  # the logged command stays what was sent
+            mpt = s.comp.min_pure_turn
+            if mpt and math.hypot(vx, vy) < 0.05 and 0.05 < abs(wz) < mpt:
+                wz_eff = math.copysign(mpt, wz)  # the logged command stays what was sent
             else:
                 wz_eff = wz
             goal = [float(np.clip(vx, -s.max_vx, s.max_vx)), float(np.clip(vy, -s.max_vx, s.max_vx)),
-                    float(np.clip(wz_eff, -max(s.max_wz, s.min_pure_turn), max(s.max_wz, s.min_pure_turn)))]
+                    float(np.clip(wz_eff, -max(s.max_wz, mpt), max(s.max_wz, mpt)))]
             if body.route is None and body.cmd.goal.tolist() == goal:
                 return  # a stream repeating the same command changes nothing: not logged (replays the same)
             self.record(robot, "velocity", vx=vx, vy=vy, wz=wz)

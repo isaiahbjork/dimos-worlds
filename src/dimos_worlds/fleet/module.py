@@ -60,6 +60,8 @@ class WarehouseFleetSimConfig(ModuleConfig):
     camera_width: int = 640
     camera_height: int = 360
     costmap_every_s: float = 1.0
+    # Policy dead-band compensation (robots.Compensation): on by default; False sends commands to the policies as is
+    compensate: bool = True
 
 
 class WarehouseFleetSim(Module):
@@ -94,7 +96,7 @@ class WarehouseFleetSim(Module):
         from dimos_worlds.replay.log import RunLog
         from dimos_worlds.warehouse.scene import PLACES_JSON
 
-        specs = warehouse_fleet()
+        specs = warehouse_fleet(self.config.compensate)
         if tuple(s.id for s in specs) != ROBOT_IDS:
             raise RuntimeError(f"robots {[s.id for s in specs]} do not match this module's ports {ROBOT_IDS}")
         self._world = warehouse_world(specs, run_log=RunLog(self.config.run_log), speed=self.config.speed)
@@ -263,3 +265,18 @@ class RobotAwareCostmaps(Module):
             getattr(self, f"{rid}_costmap").publish(_grid_msg(masks[rid], prior, base.ts))
         with self._lock:
             self._sent = poses
+
+
+# The traffic coordinator for this fleet: between goals and the robots' planners (coord.traffic has the rules).
+from dimos_worlds.coord.module import traffic_coordinator  # noqa: E402
+
+FleetTraffic = traffic_coordinator(ROBOT_IDS, "FleetTraffic")
+
+
+def fleet_agents(compensate: bool = True) -> list[dict[str, Any]]:
+    """FleetTraffic's `agents` config for warehouse_fleet()."""
+    from dataclasses import asdict
+
+    from dimos_worlds.coord.settle import agents_for
+
+    return [asdict(a) for a in agents_for(warehouse_fleet(compensate))]

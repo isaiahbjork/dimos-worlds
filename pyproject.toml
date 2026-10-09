@@ -21,6 +21,7 @@ go2-warehouse = "dimos_worlds.warehouse.blueprint:go2_warehouse"
 warehouse-fleet = "dimos_worlds.fleet.blueprint:warehouse_fleet_blueprint"
 go2-lot-night = "dimos_worlds.lot.blueprint:go2_lot_night"
 lot-cctv = "dimos_worlds.lot.cctv:LotCctv"
+warehouse-arm = "dimos_worlds.arm.blueprint:warehouse_arm"
 
 [build-system]
 requires = ["hatchling"]
