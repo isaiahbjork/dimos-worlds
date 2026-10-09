@@ -33,9 +33,9 @@ MIN_PURE_TURN_RAD_S = 0.8  # same floor as the lot's Go2 connection and the flee
 
 
 def _mjpython() -> str:
-    """macOS needs mjpython for MuJoCo's passive viewer; prefer the one next to this interpreter (works without an
-    activated venv), else whatever is on PATH."""
-    if sys.platform != "darwin":
+    """macOS needs mjpython for MuJoCo's passive viewer (DIMOS_WORLDS_VIEWER=1 only; headless otherwise); prefer the
+    one next to this interpreter (works without an activated venv), else whatever is on PATH."""
+    if sys.platform != "darwin" or os.environ.get("DIMOS_WORLDS_VIEWER", "") != "1":
         return sys.executable
     local = Path(sys.executable).with_name("mjpython")
     return str(local) if local.exists() else "mjpython"
