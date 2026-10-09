@@ -7,7 +7,7 @@ The iiwa's pose: by default its suction tool hovers over the pick table (the lay
 the tool tip at a site-frame point instead (pointing down, solved by damped least squares ), so
 render.py --state can show the arm where a recorded run had it.
 Per robot: <robot>/<k>/v (N,3 float32 metres), <robot>/<k>/f (M,3 int32), <robot>/<k>/rgba (4,), one entry per visual
-geom. Licences: both models are BSD-3-Clause (see assets/manifest.json).
+geom. Licences: all three models (G1, iiwa, Go2) are BSD-3-Clause (see assets/manifest.json).
 """
 from __future__ import annotations
 
@@ -102,6 +102,9 @@ def main() -> None:
     iw = CACHE / "menagerie_kuka_iiwa_14" / "kuka_iiwa_14"
     xml = g1 / "g1.xml" if (g1 / "g1.xml").exists() else g1 / "g1_with_hands.xml"
     dump("g1", xml, "stand", None, out)
+    go2 = CACHE / "menagerie_unitree_go2" / "unitree_go2" / "go2.xml"
+    if go2.exists():  # standing (keyframe "home"); render-only, the sims use DimOS's Go1-based Go2 model
+        dump("go2", go2, "home", None, out)
     tip = np.array(a.iiwa_tip if a.iiwa_tip else ARM["reach_targets"]["pick_table"], dtype=float)
     if not a.iiwa_tip:
         tip = tip + np.array([0.0, 0.0, ARM["clearance_m"]])  # hovering over the table

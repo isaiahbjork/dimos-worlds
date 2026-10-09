@@ -46,12 +46,14 @@ WANTED_POLYHAVEN = [
 ]
 
 # MuJoCo Menagerie robot meshes, posed by forward kinematics in render/robots_fk.py. Licences checked
-# 2026-10-08 from each folder's LICENSE file: both BSD-3-Clause (attribution must be kept).
+# 2026-10-08 (unitree_go2: 2026-10-09) from each folder's LICENSE file: all BSD-3-Clause (attribution must be kept).
 MENAGERIE_REPO = "google-deepmind/mujoco_menagerie"
 MENAGERIE_REF = "main"
 MENAGERIE = [
     {"id": "menagerie_unitree_g1", "dir": "unitree_g1", "license": "BSD-3-Clause",
      "author": "Unitree Robotics (HangZhou YuShu Technology)", "use": "G1 humanoid scale placeholder"},
+    {"id": "menagerie_unitree_go2", "dir": "unitree_go2", "license": "BSD-3-Clause",
+     "author": "Unitree Robotics (HangZhou YuShu Technology)", "use": "Go2 quadruped in renders"},
     {"id": "menagerie_kuka_iiwa_14", "dir": "kuka_iiwa_14", "license": "BSD-3-Clause",
      "author": "Drake (Toyota Research Institute) via MuJoCo Menagerie", "use": "iiwa 14 arm on a pedestal"},
 ]
