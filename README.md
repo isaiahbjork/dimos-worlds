@@ -9,6 +9,12 @@ Sim worlds for [DimOS](https://github.com/dimensionalOS/dimos), shipped as DimOS
 - **Arm cell (optional).** A KUKA iiwa 14 on the warehouse pedestal, positional IK pick and place of a tote, as its own DimOS module.
 - **Deterministic replay.** A command log plus periodic state hashes. A sim run re-executes bit-identically.
 
+![A Go2 in the night lot, Blender Cycles render](docs/media/lot-night-go2.jpg)
+
+![Go2 and G1 in the warehouse cross aisle, Blender Cycles render](docs/media/warehouse-go2-g1.jpg)
+
+*Optional Blender path: the scenes rendered with Cycles, Menagerie Go2 and G1 placed by hand (stills, not frames of a run). `docs/media/render_heroes.py`.*
+
 ![Six lot CCTV cameras at night, MuJoCo render through the camera model](docs/media/lot-cctv.jpg)
 
 *The lot's six CCTV cameras at night, gate 2 open (MuJoCo render + `camera_model.isp`; boxes and flat lighting, not photoreal).*
@@ -29,7 +35,10 @@ Early. Targets `dimos==0.0.14`. A CI job tracks DimOS `main` and is allowed to f
 
 ## Install
 
-Python 3.12. DimOS's Unitree extra builds `pyaudio`, so install PortAudio first (`brew install portaudio` on macOS, `sudo apt-get install portaudio19-dev` on Debian/Ubuntu). Not on PyPI yet; install from a checkout:
+Python 3.12. Not on PyPI yet; install from a checkout. System packages first:
+
+- macOS: `brew install portaudio` (DimOS's Unitree extra builds `pyaudio`).
+- Ubuntu/Debian: `sudo apt-get install portaudio19-dev libegl1 libgl1 git-lfs libusb-1.0-0` (PortAudio for `pyaudio`, EGL/GL for headless MuJoCo rendering, `git-lfs` for DimOS's first-use data download, libusb for DimOS's Go2 connection).
 
 ```
 git clone <this repo> && cd dimos-worlds
@@ -39,7 +48,7 @@ uv pip install -e ".[dev]"
 
 On first use DimOS downloads its MuJoCo robot models and walking policies (`mujoco_sim` data) and MuJoCo Menagerie.
 
-Headless Linux: `export MUJOCO_GL=egl` (untested here, see limitations).
+Headless Linux: `export MUJOCO_GL=egl` before `pytest` or `dimos run` (verified on Ubuntu 22.04 with an NVIDIA GPU; GitHub's Ubuntu runner uses Mesa's EGL).
 
 ## Run
 
@@ -62,20 +71,22 @@ dimos --viewer none run dimos-worlds.go2-lot-night      # Go2 in the night lot: 
 dimos --viewer none run dimos-worlds.go2-lot-night dimos-worlds.lot-cctv   # ... plus the six CCTV cameras
 ```
 
-Drop `--viewer none` for the Rerun viewer. Run one DimOS instance at a time (`dimos status`).
+Drop `--viewer none` for the Rerun viewer. The MuJoCo sims run headless; `DIMOS_WORLDS_VIEWER=1` opens MuJoCo's own viewer (needs a display). Run one DimOS instance at a time (`dimos status`, `dimos stop`).
 
 Send a goal from another terminal:
 
 ```
-# go2-warehouse
-dimos topic send /goal_request 'PoseStamped(frame_id="world", position=Vector3(12, 11.4, 0), orientation=Quaternion(0, 0, 0, 1))'
+dimos-worlds-goal /goal_request 12 11.4        # go2-warehouse
+dimos-worlds-goal /goal_request -2 -17         # go2-lot-night (row D, south drive lane)
 
 # warehouse-fleet: one goal topic per robot
-dimos topic send /g1/goal_request  'PoseStamped(frame_id="world", position=Vector3(6, 11, 0), orientation=Quaternion(0, 0, 0, 1))'
-dimos topic send /go2/goal_request 'PoseStamped(frame_id="world", position=Vector3(12, 11.4, 0), orientation=Quaternion(0, 0, 0, 1))'
+dimos-worlds-goal /g1/goal_request 6 11
+dimos-worlds-goal /go2/goal_request 12 11.4
 ```
 
-Watch odometry with `dimos topic echo /odom PoseStamped` (go2-warehouse), or `dimos topic echo /go2/odom PoseStamped` and `/g1/odom` (warehouse-fleet). In warehouse-fleet, `/go2/arrived` and `/g1/arrived` (Bool) say when a robot is at its goal, settled. Give the type name explicitly. A fresh `dimos topic` process needs a few seconds to discover the running peers. A `send` right after start can be lost, and an `echo` can print nothing for 10-20 s: resend, or echo longer. The planner logs `Got new goal` when a goal lands.
+`dimos-worlds-goal TOPIC X Y [--yaw RAD]` publishes a world-frame `PoseStamped` after waiting 3 s for peer discovery. `dimos topic send` (DimOS 0.0.14) publishes before discovery, so its goal is lost every time on Linux and sometimes on macOS. The planner logs `Got new goal` when a goal lands.
+
+Watch odometry with `dimos topic echo /odom PoseStamped` (go2-warehouse, go2-lot-night), or `dimos topic echo /go2/odom PoseStamped` and `/g1/odom` (warehouse-fleet). In warehouse-fleet, `/go2/arrived` and `/g1/arrived` (Bool) say when a robot is at its goal, settled. Give the type name explicitly. A fresh `echo` can print nothing for 10-20 s while it discovers peers: echo longer.
 
 Warehouse coordinates: metres, origin at the south-west inside corner, x east, y north. The cross aisle runs along y = 11.4. The Go2 starts at (3, 11.4), the G1 at (1, 11).
 
@@ -129,9 +140,11 @@ The IK is positional (tool tip position, tool pointing straight down at a fixed 
 
 ```
 $ dimos-worlds-replay warehouse-fleet-run.jsonl
-run: scene warehouse, robots go2, g1, 411 commands, 26 state hashes; recorded with {'mujoco': '3.15.0', 'dimos': '0.0.14', 'onnxruntime': '1.31.0', 'numpy': '2.5.3', 'dimos-worlds': '0.1.0'}
-OK: 26 state hashes match; final state f9c8c7960d6bee00 at tick 6500
+run: scene warehouse, robots go2, g1, 372 commands, 15 state hashes; recorded with {'mujoco': '3.15.0', 'platform': 'Linux-x86_64', 'dimos': '0.0.14', 'onnxruntime': '1.31.0', 'numpy': '2.5.3', 'dimos-worlds': '0.1.0'}
+OK: 15 state hashes match; final state b1458cbde9ccc209 at tick 3750
 ```
+
+A log only replays bit-exact on the stack it was recorded on. A macOS arm64 log replayed on Linux x86_64 (and the other way round) diverges at its first state hash, and replay says which recorded version or platform differs.
 
 `python -m dimos_worlds.replay RUN.jsonl` does the same. Exit status is 0 when every hash matches and 1 at the first divergence. `--until TICK` stops early.
 
@@ -147,13 +160,23 @@ python -m dimos_worlds.lot.gen_lot            # cooks lot/scene/
 
 To make your own: copy one of these packages, change the generator and cook it. Register a blueprint in your own `pyproject.toml` under `[project.entry-points."dimos.blueprints"]`, then `dimos run <your-dist>.<blueprint>`. `tests/test_warehouse.py` shows the checks a scene package should pass: DimOS loads it, it is static, and it composes with DimOS's Go1/G1 models.
 
-Optional Blender renders (`*/render/`, `*/assets/fetch.py`) are ported but not run in this release. Poly Haven assets (CC0) are fetched at build time, never committed.
+Optional Blender renders (Blender 5.2, not a Python dependency):
+
+```
+python src/dimos_worlds/lot/assets/fetch.py         # Poly Haven (CC0) + Blender human base meshes, ~165 MB
+python src/dimos_worlds/warehouse/assets/fetch.py   # Poly Haven + Menagerie G1, Go2, iiwa, ~100 MB
+DIMOS_WORLDS_BLENDER=/path/to/blender python src/dimos_worlds/warehouse/render/render.py --out out/ --lights night,day
+DIMOS_WORLDS_BLENDER=/path/to/blender python docs/media/render_heroes.py   # the README stills
+```
+
+Assets are fetched at build time into `*/assets/cache/`, never committed. `download.blender.org` refuses some cloud IPs (403); `fetch.py` then names the file to download by hand.
 
 ## Known limitations
 
-- **Verified on macOS (Apple Silicon) only.** Linux/EGL and CI have not been run yet.
-- **Blender render path untested.** `render/` and `assets/fetch.py` compile; nothing has been rendered with them in this repo.
-- **Bit-exact replay needs the same stack.** Replay needs the MuJoCo, ONNX Runtime, numpy and CPU architecture the run was recorded on (the log header records them). A changed scene file is refused.
+- **Verified on macOS (Apple Silicon) and Ubuntu 22.04 x86_64 (RTX 3090, EGL).** On Linux: the test suite, the opt-in lot e2e, all four blueprints under `dimos --viewer none run` with a goal sent and arrival checked on odometry, replay of a Linux-recorded run, and the Blender render path. CI runs the tests on GitHub's Ubuntu and macOS runners. Not tried: Linux arm64, Windows, Linux without a GPU outside CI.
+- **Blender path: stills only.** The builders, `warehouse/render/render.py`, the lot's `render/render_frames.py` and `docs/media/render_heroes.py` ran (Blender 5.2.2, Cycles/OptiX). Robots in those renders are placed, not driven by a sim run; `build_scene.py --state` (posing a recorded moment) has not been run.
+- **Bit-exact replay needs the same stack.** Replay needs the MuJoCo, ONNX Runtime, numpy and OS/CPU architecture the run was recorded on (the log header records them). macOS arm64 and Linux x86_64 logs do not replay on each other. A changed scene file is refused.
+- **G1 arrival times are chaotic across platforms.** Same commands, different float rounding: on Linux x86_64 the G1 overshoots a route corner and turns in place where macOS arm64 does not, and arrives about 8 s later (25 s vs 17 s in the fleet test). It still arrives. Each platform is deterministic with itself.
 - **Policy dead bands are compensated, not fixed.** DimOS's Go1/Go2 walking policy barely turns in place below about 0.8 rad/s and does not walk forward below about 0.3. The G1 policy walks about 1.45x the command, under-turns while walking and creeps when standing. The compensation is explicit per-robot config (`robots.Compensation`, recorded in every run log header): Go2 in-place turns from `cmd_vel` are raised to 0.8 rad/s and the route controller has its own floors; the G1's `cmd_vel` is tracked as a velocity (feed-forward + PI on measured velocity) and it holds its pose at zero command. `WarehouseFleetSimConfig.compensate=False` turns it all off. go2-warehouse (DimOS's own Go2 sim connection) raises slow in-place turns the same way. All numbers were measured in this sim, not on hardware.
 - **Coordination is proven for two robots.** The rules are written for any number of robots and the module takes any ids, but only Go2 + G1 have been run. With three or more, pairwise decisions can form a cycle; the deadlock swap is the only guard and has not been exercised that way.
 - **Coordination is conservative.** Any two paths that come within passing distance count as a conflict, even in a 3.3 m aisle where the planners could squeeze past each other, so one robot waits. There are no timed reservations: the decision uses where the paths go and estimated arrival, not a schedule.

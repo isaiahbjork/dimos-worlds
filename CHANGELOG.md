@@ -16,4 +16,9 @@
 - G1 `cmd_vel` tracked as a velocity, with pose hold at zero command; Go2 slow in-place turns raised past the policy dead band.
 - Deterministic replay: command log, periodic state hashes, re-execution check (`dimos-worlds-replay`).
 - DimOS external blueprints: `go2-lot-night`, `lot-cctv`, `go2-warehouse`, `warehouse-fleet`.
-- Targets `dimos==0.0.14`. Verified on macOS only.
+- Targets `dimos==0.0.14`. Verified on macOS (Apple Silicon) and Ubuntu 22.04 x86_64 (NVIDIA EGL); CI on GitHub's Ubuntu and macOS runners.
+- `dimos-worlds-goal`: send a goal after peer discovery (`dimos topic send` loses it on Linux).
+- `go2-warehouse` runs headless by default (`DIMOS_WORLDS_VIEWER=1` for MuJoCo's viewer) and keeps real time without the viewer.
+- Run logs record OS/CPU architecture; replay names the stack difference when it diverges.
+- Blender render path run on Linux: Menagerie Go2 in the warehouse render, README stills from `docs/media/render_heroes.py`.
+- Imports DimOS's planner from its new location on DimOS main.
