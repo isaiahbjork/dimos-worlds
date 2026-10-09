@@ -10,7 +10,7 @@ Writes DIR/<light>_<cam>.jpg (1280x720, JPEG q80) and DIR/manifest.json.
 --state poses the scene as a recorded moment (tote poses, the G1, what each body holds, the arm's tool tip; format in
 render/build_scene.py), with its own robots npz (robots_fk.py --iiwa-tip) and its own .blend.
 
-UNVERIFIED in this package: ported with the paths changed; not run since (no Blender run for this release).
+Run on Ubuntu 22.04 + RTX 3090 with Blender 5.2.2 (Cycles, OptiX): --lights night,day --cams cam1.
 """
 from __future__ import annotations
 

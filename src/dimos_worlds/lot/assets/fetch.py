@@ -135,7 +135,10 @@ def fetch_zip(a: dict) -> None:
     if marker.is_file():
         return
     zpath = root / "download.zip"
-    _save(a["download"], zpath)
+    try:
+        _save(a["download"], zpath)
+    except OSError as e:  # download.blender.org answers 403 to some cloud/datacenter IPs
+        raise RuntimeError(f"{a['download']}: {e}. Download it by hand (any browser) to {zpath} and rerun.") from e
     with zipfile.ZipFile(zpath) as z:
         for m in z.infolist():
             target = _safe_join(root, m.filename)

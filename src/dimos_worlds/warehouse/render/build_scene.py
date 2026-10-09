@@ -9,11 +9,10 @@ Poly Haven cache (python assets/fetch.py). Metres, origin = SW interior corner, 
 
 Totes, the G1 and the iiwa come from cell.py (the same layout the MuJoCo scene uses): totes at their initial slots,
 the G1 in its charging spot. --state poses them as a recorded moment instead (render/render.py --state):
-{"totes": {id: [x, y, z_centre, yaw]}, "g1": [x, y, yaw], "g1Holding": id|null, "armHolding": id|null,
+{"totes": {id: [x, y, z_centre, yaw]}, "g1": [x, y, yaw], "go2": [x, y, yaw], "g1Holding": id|null, "armHolding": id|null,
  "armTip": [x, y, z]}; the iiwa pose for armTip is solved by robots_fk.py (--robots).
 
-UNVERIFIED in this package: ported from a working builder (Blender 5.2.2 Cycles) with the pallet-mover parts removed
-and imports re-pathed; it has not been run since.
+Built on Ubuntu 22.04 with Blender 5.2.2 (1398 objects with the Go2). --state is ported but has not been run here.
 """
 from __future__ import annotations
 
@@ -829,7 +828,11 @@ def robots(M, npz=None):
     t1 = build("g1", (gx, gy, 0.0), math.degrees(gyaw), "render_only")  # the live map draws the G1 itself
     t2 = build("iiwa", (a["pedestal_center"][0], a["pedestal_center"][1], a["pedestal_height"]), a["base_yaw_deg"], "render_only")
     build("iiwa", (a["pedestal_center"][0], a["pedestal_center"][1], a["pedestal_height"]), a["base_yaw_deg"], "web_only", 20000)
-    print(f"ROBOTS g1 {t1} tris, iiwa {t2} tris", flush=True)
+    t3 = 0
+    if "go2" in names:  # robots_fk.py dumps it when the Menagerie Go2 is in the cache; default: the fleet's start
+        qx, qy, qyaw = STATE.get("go2") or (3.0, 11.4, 0.0)
+        t3 = build("go2", (qx, qy, 0.0), math.degrees(qyaw), "render_only")
+    print(f"ROBOTS g1 {t1} tris, iiwa {t2} tris, go2 {t3} tris", flush=True)
 
 
 # ---- world -------------------------------------------------------------------------------------

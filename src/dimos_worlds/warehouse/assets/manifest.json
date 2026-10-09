@@ -166,6 +166,17 @@
       "menagerie_dir": "unitree_g1"
     },
     {
+      "id": "menagerie_unitree_go2",
+      "name": "unitree_go2",
+      "kind": "robot",
+      "source": "https://github.com/google-deepmind/mujoco_menagerie/tree/main/unitree_go2",
+      "license": "BSD-3-Clause",
+      "license_url": "https://github.com/google-deepmind/mujoco_menagerie/blob/main/unitree_go2/LICENSE",
+      "author": "Unitree Robotics (HangZhou YuShu Technology)",
+      "use": "Go2 quadruped in renders",
+      "menagerie_dir": "unitree_go2"
+    },
+    {
       "id": "menagerie_kuka_iiwa_14",
       "name": "kuka_iiwa_14",
       "kind": "robot",

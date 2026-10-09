@@ -206,7 +206,10 @@ def test_cctv_render_deterministic_and_sees_events():
     r = CctvRenderer()
     try:
         a = r.frame("cam6", (1,))
-        assert np.array_equal(a, r.frame("cam6", (1,)))
+        # Same seed, same frame. Mesa (llvmpipe) is bit-exact; NVIDIA's EGL driver is not quite: a few dozen
+        # pixels of 921600 differ by 1 LSB between two renders of an unchanged scene.
+        again = np.abs(r.frame("cam6", (1,)).astype(int) - a.astype(int))
+        assert again.max() <= 1 and (again.max(axis=2) > 0).sum() < 1000
         events.person_at(r.model, r.data, "north-fence")
         b = r.frame("cam6", (1,))
         changed = (np.abs(b.astype(int) - a.astype(int)).max(axis=2) > 30).sum()

@@ -20,7 +20,10 @@ from typing import Any
 from dimos.core.coordination.blueprints import autoconnect
 from dimos.core.global_config import global_config
 from dimos.navigation.movement_manager.movement_manager import MovementManager
-from dimos.navigation.replanning_a_star.module import ReplanningAStarPlanner
+try:
+    from dimos.navigation.replanning_a_star.module import ReplanningAStarPlanner
+except ModuleNotFoundError:  # DimOS main (after 0.0.14) moved it under navigation/go2/
+    from dimos.navigation.go2.replanning_a_star.module import ReplanningAStarPlanner
 from dimos.visualization.vis_module import vis_module
 
 from dimos_worlds.fleet.module import ROBOT_IDS, FleetTraffic, RobotAwareCostmaps, WarehouseFleetSim, fleet_agents

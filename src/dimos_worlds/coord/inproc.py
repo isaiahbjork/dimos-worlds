@@ -55,7 +55,10 @@ class InProcessFleet:
                  config: TrafficConfig | None = None, run_log: Any = None, speed: float = 1.0,
                  near_m: float = 3.0, pad_m: float = 0.25) -> None:
         from dimos.core.global_config import GlobalConfig
-        from dimos.navigation.replanning_a_star.global_planner import GlobalPlanner
+        try:
+            from dimos.navigation.replanning_a_star.global_planner import GlobalPlanner
+        except ModuleNotFoundError:  # DimOS main (after 0.0.14) moved it under navigation/go2/
+            from dimos.navigation.go2.replanning_a_star.global_planner import GlobalPlanner
 
         from dimos_worlds.fleet.places import load_places
         from dimos_worlds.fleet.world import warehouse_world
