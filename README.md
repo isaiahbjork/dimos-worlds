@@ -5,6 +5,8 @@ Sim worlds for [DimOS](https://github.com/dimensionalOS/dimos), shipped as DimOS
 - **Night vehicle lot.** Outdoor lot with six fixed CCTV cameras (distortion, noise, JPEG-style ISP), named places, and scripted events: person appears, gate opens, vehicle moves.
 - **Warehouse.** 30 x 20 m building with pallet racking, pallets, conveyor and pick table, built from a layout file, with a known-occupancy prior map for DimOS's planner.
 - **Shared-world fleet.** A Go2 and a G1 in one MuJoCo world, each on its own policy timestep, each with its own DimOS planner, and costmaps that show each robot the other.
+- **Navigation-level coordination.** A DimOS module between goals and the planners: right of way from the planned paths, hold short of a shared stretch, yield to a pocket in head-on meetings, automatic retries, deadlock swap, and settling at the goal pose. No goal resends by hand.
+- **Arm cell (optional).** A KUKA iiwa 14 on the warehouse pedestal, positional IK pick and place of a tote, as its own DimOS module.
 - **Deterministic replay.** A command log plus periodic state hashes. A sim run re-executes bit-identically.
 
 ![Six lot CCTV cameras at night, MuJoCo render through the camera model](docs/media/lot-cctv.jpg)
@@ -23,7 +25,7 @@ Sim worlds for [DimOS](https://github.com/dimensionalOS/dimos), shipped as DimOS
 
 ## Status
 
-Early. Targets `dimos==0.0.14`. A CI job tracks DimOS `main` and is allowed to fail. G1 walks only (no arms, no manipulation). See [Known limitations](#known-limitations).
+Early. Targets `dimos==0.0.14`. A CI job tracks DimOS `main` and is allowed to fail. The G1 walks only (its arms do nothing); the only manipulation is the separate arm cell. See [Known limitations](#known-limitations).
 
 ## Install
 
@@ -48,12 +50,14 @@ $ dimos list | grep dimos-worlds
   dimos-worlds.go2-lot-night
   dimos-worlds.go2-warehouse
   dimos-worlds.lot-cctv
+  dimos-worlds.warehouse-arm
   dimos-worlds.warehouse-fleet
 ```
 
 ```
 dimos --viewer none run dimos-worlds.go2-warehouse      # Go2 in the warehouse: DimOS's Go2 stack on the warehouse prior map
-dimos --viewer none run dimos-worlds.warehouse-fleet    # Go2 + G1 in one shared world, one planner each
+dimos --viewer none run dimos-worlds.warehouse-fleet    # Go2 + G1 in one shared world, one planner each, coordinated
+dimos --viewer none run dimos-worlds.warehouse-arm      # the iiwa arm cell on its own (add it to warehouse-fleet the same way)
 dimos --viewer none run dimos-worlds.go2-lot-night      # Go2 in the night lot: prior map, named places, events
 dimos --viewer none run dimos-worlds.go2-lot-night dimos-worlds.lot-cctv   # ... plus the six CCTV cameras
 ```
@@ -71,9 +75,53 @@ dimos topic send /g1/goal_request  'PoseStamped(frame_id="world", position=Vecto
 dimos topic send /go2/goal_request 'PoseStamped(frame_id="world", position=Vector3(12, 11.4, 0), orientation=Quaternion(0, 0, 0, 1))'
 ```
 
-Watch odometry with `dimos topic echo /odom PoseStamped` (go2-warehouse), or `dimos topic echo /go2/odom PoseStamped` and `/g1/odom` (warehouse-fleet). Give the type name explicitly. A fresh `dimos topic` process needs a few seconds to discover the running peers. A `send` right after start can be lost, and an `echo` can print nothing for 10-20 s: resend, or echo longer. The planner logs `Got new goal` when a goal lands.
+Watch odometry with `dimos topic echo /odom PoseStamped` (go2-warehouse), or `dimos topic echo /go2/odom PoseStamped` and `/g1/odom` (warehouse-fleet). In warehouse-fleet, `/go2/arrived` and `/g1/arrived` (Bool) say when a robot is at its goal, settled. Give the type name explicitly. A fresh `dimos topic` process needs a few seconds to discover the running peers. A `send` right after start can be lost, and an `echo` can print nothing for 10-20 s: resend, or echo longer. The planner logs `Got new goal` when a goal lands.
 
 Warehouse coordinates: metres, origin at the south-west inside corner, x east, y north. The cross aisle runs along y = 11.4. The Go2 starts at (3, 11.4), the G1 at (1, 11).
+
+## Coordination
+
+In `warehouse-fleet`, goals go to `FleetTraffic` (`dimos_worlds.coord`), not straight to the planners. It forwards each goal to that robot's planner (`{id}/nav_goal`), reads back the path the planner follows (`{id}/path`) and its result (`{id}/goal_reached`), and compares every pair of remaining paths. Two paths that come closer than the two bodies need to pass (radius + radius + 0.3 m), at a spot both robots reach within 8 m, are a conflict, and one robot gets the right of way:
+
+1. A robot with no goal (parked, or settling) standing on an active robot's path moves to a pocket and comes back afterwards.
+2. A robot already on the other's path, while the other is not on its path, goes first (a crossing, or a robot being followed). The other holds.
+3. Both on each other's path (head-on in an aisle): the lower priority robot yields to a pocket, the nearest free spot off the winner's whole remaining path that it can reach without passing the winner. No pocket for it: the other yields.
+4. Neither yet on the other's path: whoever reaches the shared spot first by more than 3 s goes, otherwise priority (list order in `robots.warehouse_fleet()`: Go2, then G1). The other holds.
+
+A holding robot walks until it is 1 m short of the shared stretch and stands there (its planner gets its own pose as the goal) until the stretch moves on or clears. A yielding robot gets the pocket as its goal and its real goal back once the winner's path no longer comes near its own. A planner that gives up, or reports arrival away from the goal, gets the goal again after 3 s. If the robot with the right of way makes no progress for 25 s, the right of way is swapped. Every decision is logged (`traffic: ...`).
+
+When the planner reports arrival, the G1 closes the last position and heading error itself (holonomic velocity commands, at most 0.15 m/s, to 0.12 m and 6 degrees); the Go2 corrects heading only (its small forward commands sit in the policy's dead band). Then `{id}/arrived` is published.
+
+The rules (`coord/traffic.py`) are pure numpy, robot-agnostic, and know nothing about the warehouse: robots are ids with a radius, a priority and an optional settle config. `coord.module.traffic_coordinator(ids, name)` builds the DimOS module for any set of robot ids.
+
+Scripted scenarios run the same stack in one process (the world, DimOS's own `GlobalPlanner` per robot, the robot-aware costmaps, the coordinator), each goal sent once:
+
+```
+python -m dimos_worlds.coord.scenarios head-on --runs 5    # aisle A-B, 2.5 m wide: Go2 and G1 start at opposite ends, each bound past the other
+python -m dimos_worlds.coord.scenarios crossing --runs 5   # Go2 east along the cross aisle, G1 south down the 1.6 m east aisle across it
+python -m dimos_worlds.coord.scenarios head-on --no-coord  # the same, planners only
+```
+
+Measured on macOS (Apple Silicon), real time, each goal sent once:
+
+| scenario | coordinated | planners only |
+|---|---|---|
+| head-on | 5/5: Go2 arrives in 38-81 s, G1 in 104-147 s, both within 0.24 m and 9 degrees; G1 yields every run, one run needed the deadlock swap; closest 0.88 m between centres | 0/2: once the Go2's planner gave up and left it in the cross aisle; once both arrived but the bodies came within 0.63 m of each other (radii add up to 0.65) and the Go2 stood 173 degrees off its goal heading |
+| crossing | 5/5: Go2 arrives in 22-25 s, G1 in 48-50 s, both within 0.09 m and 11 degrees; the G1 holds short of the crossing every run; closest 1.20 m | 0/2: the Go2's planner reports arrival without moving (see limitations) |
+
+Live, with `dimos run dimos-worlds.warehouse-fleet` and each goal published once: Go2 and G1 sent to opposite ends of aisle A-B (head-on), the G1 yielded to a pocket in the east aisle, the Go2's planner gave up once next to it and got its goal again from the coordinator, both arrived (G1 0.05 m and 2 degrees off, Go2 0.09 m and 5 degrees), and `dimos-worlds-replay` matched all 54 state hashes of that run.
+
+## Arm cell
+
+`warehouse-arm` puts MuJoCo Menagerie's `kuka_iiwa_14` (fetched with DimOS's Menagerie copy, not vendored) on the pedestal by the conveyor, with a suction tool, and makes tote-09 at the conveyor's end a free body. Commands name two reach targets from `layout.json` (`conveyor`, `pick_table`, `pallet-2`):
+
+```
+dimos --viewer none run dimos-worlds.warehouse-arm
+dimos topic send /arm_command 'String("conveyor pick_table")'
+dimos topic echo /arm_status String     # above conveyor ... gripped; lifting ... released at pick_table ... done conveyor pick_table 26.617 11.993 0.813
+```
+
+The IK is positional (tool tip position, tool pointing straight down at a fixed heading, damped least squares from a few starts), the motion is minimum-jerk between IK solutions, tracked by the model's own joint servos with gravity compensation. It publishes `arm_joint_state` and `tote_pose`.
 
 ## Replay
 
@@ -106,11 +154,14 @@ Optional Blender renders (`*/render/`, `*/assets/fetch.py`) are ported but not r
 - **Verified on macOS (Apple Silicon) only.** Linux/EGL and CI have not been run yet.
 - **Blender render path untested.** `render/` and `assets/fetch.py` compile; nothing has been rendered with them in this repo.
 - **Bit-exact replay needs the same stack.** Replay needs the MuJoCo, ONNX Runtime, numpy and CPU architecture the run was recorded on (the log header records them). A changed scene file is refused.
-- **Policy dead bands are compensated, not fixed.** DimOS's Go1/Go2 walking policy barely turns in place below about 0.8 rad/s and does not walk forward below about 0.3. Slow in-place turns from `cmd_vel` are raised to 0.8 rad/s (go2-warehouse, warehouse-fleet), and the fleet's route controller has its own floors. The G1 policy walks about 1.6x the command, under-turns while walking and creeps when standing. So in warehouse-fleet its `cmd_vel` is tracked as a velocity (feed-forward + PI on measured velocity), and it holds its pose at zero command. These numbers were measured in this sim, not on hardware.
-- **Planners do not coordinate.** Each robot's planner sees the other robot in its costmap (within 3 m) and replans around it, nothing more. When two robots meet in an aisle, one planner can give up after its replan limit; send the goal again.
+- **Policy dead bands are compensated, not fixed.** DimOS's Go1/Go2 walking policy barely turns in place below about 0.8 rad/s and does not walk forward below about 0.3. The G1 policy walks about 1.45x the command, under-turns while walking and creeps when standing. The compensation is explicit per-robot config (`robots.Compensation`, recorded in every run log header): Go2 in-place turns from `cmd_vel` are raised to 0.8 rad/s and the route controller has its own floors; the G1's `cmd_vel` is tracked as a velocity (feed-forward + PI on measured velocity) and it holds its pose at zero command. `WarehouseFleetSimConfig.compensate=False` turns it all off. go2-warehouse (DimOS's own Go2 sim connection) raises slow in-place turns the same way. All numbers were measured in this sim, not on hardware.
+- **Coordination is proven for two robots.** The rules are written for any number of robots and the module takes any ids, but only Go2 + G1 have been run. With three or more, pairwise decisions can form a cycle; the deadlock swap is the only guard and has not been exercised that way.
+- **Coordination is conservative.** Any two paths that come within passing distance count as a conflict, even in a 3.3 m aisle where the planners could squeeze past each other, so one robot waits. There are no timed reservations: the decision uses where the paths go and estimated arrival, not a schedule.
+- **A pocket needs free floor.** A 2.5 m aisle is too narrow to step aside in (bodies plus margins need about 2.7 m), so a yielding robot backs out of the aisle. A dead-end with no pocket falls back to holding and the deadlock swap.
+- **DimOS's planner sometimes reports arrival without moving.** When a robot already faces along its new path, `ReplanningAStarPlanner` (dimos 0.0.14) can go straight to its final rotation and report the goal reached at the start. The coordinator sees the robot is not at the goal and sends the goal again 3 s later; without the coordinator the robot just stays.
 - **Slow corners look "stuck" to DimOS.** Its sim stuck check (under 1 m in 8 s) fires repeatedly while the Go2 turns around rack ends. The planner replans each time and still arrives: 2 min 10 s from (3, 11.4) to (15, 7.5) in one verified run.
-- **Goal heading is loose.** DimOS's planner can report arrival with the G1 tens of degrees off the goal heading.
-- **No arm yet.** The warehouse has the arm cell and pedestal; no arm is simulated.
+- **Go2 goal pose is the planner's.** The Go2 settles its heading only (11 degrees off at worst in the runs above); its position is where DimOS's planner stops it, up to about 0.25 m off.
+- **The arm cell is a separate simulation.** It has its own MuJoCo model and thread: the walking robots do not see it move (they keep out of its stay-out anyway), and arm runs are not in the shared world's run log or replay. The suction grip is kinematic (the gripped tote follows the tool). One tote is free; the others stay static scenery.
 - **MuJoCo visuals are boxes with flat lighting.** Fine for pipelines and change detection, not for judging what a real night camera sees.
 - **Lot CCTV frames are rendered, not recorded.** Camera model parameters are typical datasheet values, UNVERIFIED against any specific camera.
 
