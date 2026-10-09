@@ -9,15 +9,52 @@ data (never copied into this repo):
                              physics step 2 ms, policy every 20 ms, DimOS's drift compensation
 
 Command units are the policy's own (DimOS passes cmd_vel straight through as the policy command), except for a body
-with `track_velocity`, whose cmd_vel is a velocity it tracks. `cmd_gain` is the measured walking speed per command unit.
+whose Compensation has `track_velocity`, whose cmd_vel is a velocity it tracks. `cmd_gain` is the measured walking
+speed per command unit.
+
+Dead-band compensation (Compensation, one per robot, recorded in every run log header) works around how DimOS's
+walking policies respond in this sim; it does not change the policies:
+
+  Go2 (DimOS Go1 policy)  forward commands below ~0.3 do not move it, in-place turns below ~0.8 rad/s barely turn it.
+                          cmd_vel in-place turns slower than `min_pure_turn` are raised to it; the route controller
+                          raises its own commands to `min_vx` / `min_wz`.
+  G1  (DimOS G1 policy)   walks ~1.45x the command, under-turns while walking, drifts sideways, creeps standing.
+                          `track_velocity`: cmd_vel is a wanted body velocity, tracked closed-loop (feed-forward
+                          1/cmd_gain + PI on measured velocity); a zero command holds the pose it stopped at.
+
+`warehouse_fleet(compensate=False)` (WarehouseFleetSimConfig.compensate) turns all of it off: commands then reach the
+policies as sent, which is what the policies were trained on and what to compare against. Numbers were measured in
+this sim, not on hardware.
 """
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 from dimos_worlds.warehouse.cell import LAYOUT
+
+
+@dataclass(frozen=True)
+class Compensation:
+    """Policy dead-band compensation for one robot. All zero / False: commands pass straight through."""
+
+    min_vx: float = 0.0  # route controller: a smaller forward command is raised to this (it would not move the body)
+    min_wz: float = 0.0  # route controller: same for turning
+    # cmd_vel: an in-place turn slower than this is raised to it (the Go1 policy barely turns below 0.8 rad/s in place,
+    # so DimOS's planner sits in its initial rotation until it declares the robot stuck). 0 = off.
+    min_pure_turn: float = 0.0
+    # cmd_vel is the body's wanted m/s and rad/s, tracked closed-loop against its measured velocity (feed-forward
+    # 1/cmd_gain + PI), and a zero command holds the pose. For a policy that walks faster than commanded, under-turns
+    # while walking and drifts sideways, which makes a path follower veer off its path.
+    track_velocity: bool = False
+
+    @property
+    def any(self) -> bool:
+        return bool(self.min_vx or self.min_wz or self.min_pure_turn or self.track_velocity)
+
+
+NO_COMPENSATION = Compensation()
 
 
 @dataclass(frozen=True)
@@ -36,25 +73,25 @@ class RobotSpec:
     max_wz: float = 0.5  # rad/s
     acc_vx: float = 0.8  # command rate limits, per second of sim time (see world.py "Timing")
     acc_wz: float = 1.5
-    cmd_gain: float = 1.0  # m/s walked per command unit (route controller only)
-    min_vx: float = 0.0  # policy dead band: smaller forward commands do not move the body (route controller only)
-    min_wz: float = 0.0  # same for turning
-    # cmd_vel: an in-place turn slower than this is raised to it (the Go1 policy barely turns below 0.8 rad/s in place,
-    # so DimOS's planner sits in its initial rotation until it declares the robot stuck). 0 = off.
-    min_pure_turn: float = 0.0
+    cmd_gain: float = 1.0  # m/s walked per command unit (route controller and velocity tracking)
     fall_z: float = 0.15  # base height below which the body counts as fallen
-    # Velocity commands (cmd_vel) are taken as the body's wanted m/s and rad/s and tracked closed-loop against its
-    # measured velocity (feed-forward 1/cmd_gain + PI). For a policy that walks faster than commanded, under-turns
-    # while walking and drifts sideways, which makes a path follower veer off its path.
-    track_velocity: bool = False
     color: str = "#888888"
+    comp: Compensation = field(default_factory=Compensation)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> RobotSpec:
-        return cls(**d)
+        d = dict(d)
+        comp = dict(d.pop("comp", None) or {})
+        for k in ("min_vx", "min_wz", "min_pure_turn", "track_velocity"):  # logs from 0.1.0 kept these flat
+            if k in d:
+                comp[k] = d.pop(k)
+        return cls(**d, comp=Compensation(**comp))
+
+    def without_compensation(self) -> RobotSpec:
+        return replace(self, comp=NO_COMPENSATION)
 
 
 # Go2 numbers measured in the warehouse (3 s at each command, DimOS Go1 policy, 5 ms steps): forward 0.1 and 0.2
@@ -63,7 +100,8 @@ class RobotSpec:
 def go2(x: float, y: float, yaw: float = 0.0, robot_id: str = "go2") -> RobotSpec:
     return RobotSpec(id=robot_id, kind="quadruped", mujoco="unitree_go1", x=x, y=y, yaw=yaw, sim_dt=0.005,
                      body_radius=0.3, turn_diameter=0.6, max_vx=0.6, max_wz=1.0, acc_vx=1.0, acc_wz=2.0,
-                     cmd_gain=1.0, min_vx=0.3, min_wz=0.6, min_pure_turn=0.8, fall_z=0.15, color="#2563eb")
+                     cmd_gain=1.0, fall_z=0.15, color="#2563eb",
+                     comp=Compensation(min_vx=0.3, min_wz=0.6, min_pure_turn=0.8))
 
 
 def g1(x: float, y: float, yaw: float = 0.0, robot_id: str = "g1") -> RobotSpec:
@@ -72,14 +110,16 @@ def g1(x: float, y: float, yaw: float = 0.0, robot_id: str = "g1") -> RobotSpec:
     # -0.14 m/s lateral): DimOS's planner then reports "veered off track" and gives up. Hence track_velocity.
     return RobotSpec(id=robot_id, kind="humanoid", mujoco="unitree_g1", x=x, y=y, yaw=yaw, sim_dt=0.002,
                      body_radius=0.35, turn_diameter=0.8, max_vx=0.5, max_wz=0.5, acc_vx=0.8 / 1.45, acc_wz=1.5,
-                     cmd_gain=1.45, fall_z=0.45, track_velocity=True, color="#c2410c")
+                     cmd_gain=1.45, fall_z=0.45, color="#c2410c", comp=Compensation(track_velocity=True))
 
 
-def warehouse_fleet() -> tuple[RobotSpec, ...]:
-    """Go2 in the cross aisle, G1 at the charging spot, both facing east."""
+def warehouse_fleet(compensate: bool = True) -> tuple[RobotSpec, ...]:
+    """Go2 in the cross aisle, G1 at the charging spot, both facing east. compensate=False: no dead-band
+    compensation (see the module docstring)."""
     qx, qy, qyaw = LAYOUT["quadruped"]["home"]
     hx, hy, hyaw = LAYOUT["humanoid"]["home"]
-    return (go2(qx, qy, qyaw), g1(hx, hy, hyaw))
+    specs = (go2(qx, qy, qyaw), g1(hx, hy, hyaw))
+    return specs if compensate else tuple(s.without_compensation() for s in specs)
 
 
 def dimos_mujoco_data() -> Path:
