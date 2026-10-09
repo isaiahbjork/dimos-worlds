@@ -35,6 +35,7 @@ blueprint. coord.module wraps it as a DimOS module; coord.inproc runs it against
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
 import math
@@ -221,6 +222,7 @@ class Traffic:
         self.robots: dict[str, _Robot] = {a.id: _Robot(agent=a) for a in agents}
         self.grants: dict[frozenset[str], Grant] = {}
         self.events: deque[tuple[float, str]] = deque(maxlen=500)
+        self.on_event: Callable[[float, str], None] | None = None  # e.g. a logger, for every decision
         self._grid: np.ndarray | None = None  # int8, row = y; 0 free
         self._origin = (0.0, 0.0)
         self._res = 0.1
@@ -640,6 +642,8 @@ class Traffic:
     def _event(self, now: float, text: str) -> None:
         self.events.append((now, text))
         log.info("traffic %.1f: %s", now, text)
+        if self.on_event is not None:
+            self.on_event(now, text)
 
 
 def settle_command(sc: SettleConfig, pose: tuple[float, float, float],

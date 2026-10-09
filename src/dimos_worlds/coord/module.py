@@ -92,6 +92,7 @@ class _TrafficCoordinatorBase(Module):
                             retry_s=c.retry_s, deadlock_s=c.deadlock_s)
         self._coord = Coordinator(agents, cfg, on_goal=self._goal_out, on_stop=self._stop_out,
                                   on_velocity=self._vel_out, on_arrived=self._arrived_out, rate_hz=c.rate_hz)
+        self._coord.traffic.on_event = lambda _t, text: logger.info(f"traffic: {text}")
         sub = self.register_disposable
         sub(Disposable(self.global_costmap.subscribe(self._on_costmap)))
         for rid in self.ROBOT_IDS:
