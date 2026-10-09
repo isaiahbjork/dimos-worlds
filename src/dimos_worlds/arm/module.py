@@ -59,7 +59,7 @@ class WarehouseArm(Module):
         self._cell = ArmCell(self.config.tote_id)
         self._cell.on_step.append(self._after_step)
         self.register_disposable(Disposable(self.arm_command.subscribe(lambda m: self._cmds.put(str(m.data)))))
-        threading.Thread(target=self._loop, name="warehouse-arm", daemon=True).start()
+        threading.Thread(target=self._run_arm, name="warehouse-arm", daemon=True).start()
         self._status("ready")
 
     @rpc
@@ -71,7 +71,7 @@ class WarehouseArm(Module):
         logger.info(f"arm: {text}")
         self.arm_status.publish(String(text))
 
-    def _loop(self) -> None:
+    def _run_arm(self) -> None:
         cell = self._cell
         self._wall0, self._sim0 = time.monotonic(), cell.sim_time
         while not self._stop.is_set():
