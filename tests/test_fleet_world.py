@@ -32,7 +32,13 @@ def test_both_walk_and_proxies_follow(world: SharedWorld) -> None:
     loc = cell.BY_ID["shelf-c"]
     r_g1 = world.walk_to("g1", *loc.stand_point(*loc.center), 0.5)
     r_go2 = world.walk_route("go2", [(9.0, 11.4, 0.0)], 0.6)
-    world.step(int(20.0 / CTRL_DT))
+    # The G1's arrival time is chaotic: float differences between platforms (x86_64 Linux vs arm64 macOS) flip
+    # whether it turns in place at a route corner, which costs it ~8 s (17 s on macOS arm64, 25 s on Linux x86_64
+    # in the same scenario). So give the routes up to 40 s and check that they finish, not how fast.
+    for _ in range(int(40.0 / CTRL_DT)):
+        world.tick()
+        if r_g1.done and r_go2.done:
+            break
     end = world.poses()
     assert math.dist(start["go2"][:2], end["go2"][:2]) > 3.0
     assert math.dist(start["g1"][:2], end["g1"][:2]) > 1.5
