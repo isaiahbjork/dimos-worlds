@@ -128,7 +128,7 @@ Live, with `dimos run dimos-worlds.warehouse-fleet` and each goal published once
 
 ```
 dimos --viewer none run dimos-worlds.warehouse-arm
-dimos topic send /arm_command 'String("conveyor pick_table")'
+dimos-worlds-send /arm_command 'String("conveyor pick_table")'   # dimos topic send, after peer discovery
 dimos topic echo /arm_status String     # above conveyor ... gripped; lifting ... released at pick_table ... done conveyor pick_table 26.617 11.993 0.813
 ```
 
@@ -140,8 +140,12 @@ The IK is positional (tool tip position, tool pointing straight down at a fixed 
 
 ```
 $ dimos-worlds-replay warehouse-fleet-run.jsonl
-run: scene warehouse, robots go2, g1, 372 commands, 15 state hashes; recorded with {'mujoco': '3.15.0', 'platform': 'Linux-x86_64', 'dimos': '0.0.14', 'onnxruntime': '1.31.0', 'numpy': '2.5.3', 'dimos-worlds': '0.1.0'}
-OK: 15 state hashes match; final state b1458cbde9ccc209 at tick 3750
+run: scene warehouse, robots go2, g1, 731 commands, 20 state hashes; recorded with {'mujoco': '3.15.0', 'platform': 'Linux-x86_64', 'dimos': '0.0.14', 'onnxruntime': '1.31.0', 'numpy': '2.5.3', 'dimos-worlds': '0.1.0'}
+  tick 2540: g1 fell
+  tick 2590: g1 recovered
+  tick 3317: g1 fell
+  tick 3367: g1 recovered
+OK: 20 state hashes match; final state adee78f798939661 at tick 5000
 ```
 
 A log only replays bit-exact on the stack it was recorded on. A macOS arm64 log replayed on Linux x86_64 (and the other way round) diverges at its first state hash, and replay says which recorded version or platform differs.
@@ -173,10 +177,10 @@ Assets are fetched at build time into `*/assets/cache/`, never committed. `downl
 
 ## Known limitations
 
-- **Verified on macOS (Apple Silicon) and Ubuntu 22.04 x86_64 (RTX 3090, EGL).** On Linux: the test suite, the opt-in lot e2e, all four blueprints under `dimos --viewer none run` with a goal sent and arrival checked on odometry, replay of a Linux-recorded run, and the Blender render path. CI runs the tests on GitHub's Ubuntu and macOS runners. Not tried: Linux arm64, Windows, Linux without a GPU outside CI.
+- **Verified on macOS (Apple Silicon) and Ubuntu 22.04 x86_64 (RTX 3090, EGL).** On Linux: the test suite, the opt-in lot e2e, all five blueprints under `dimos --viewer none run` (goals sent and arrival checked on odometry; warehouse-arm's conveyor-to-pick-table move), replay of a Linux-recorded run, and the Blender render path. The coordinated head-on test (`test_coord_fleet.py`) failed once in three Linux runs; both robots arrived in the failing run too. CI runs the tests on GitHub's Ubuntu and macOS runners. Not tried: Linux arm64, Windows, Linux without a GPU outside CI.
 - **Blender path: stills only.** The builders, `warehouse/render/render.py`, the lot's `render/render_frames.py` and `docs/media/render_heroes.py` ran (Blender 5.2.2, Cycles/OptiX). Robots in those renders are placed, not driven by a sim run; `build_scene.py --state` (posing a recorded moment) has not been run.
 - **Bit-exact replay needs the same stack.** Replay needs the MuJoCo, ONNX Runtime, numpy and OS/CPU architecture the run was recorded on (the log header records them). macOS arm64 and Linux x86_64 logs do not replay on each other. A changed scene file is refused.
-- **G1 arrival times are chaotic across platforms.** Same commands, different float rounding: on Linux x86_64 the G1 overshoots a route corner and turns in place where macOS arm64 does not, and arrives about 8 s later (25 s vs 17 s in the fleet test). It still arrives. Each platform is deterministic with itself.
+- **G1 arrival times are chaotic across platforms.** Same commands, different float rounding: on Linux x86_64 the G1 overshoots a route corner and turns in place where macOS arm64 does not, and arrives about 8 s later (25 s vs 17 s in the fleet test). It still arrives. Each platform is deterministic with itself. In one coordinated warehouse-fleet run on Linux the G1 fell twice (recovered, arrived); replay reproduces the falls.
 - **Policy dead bands are compensated, not fixed.** DimOS's Go1/Go2 walking policy barely turns in place below about 0.8 rad/s and does not walk forward below about 0.3. The G1 policy walks about 1.45x the command, under-turns while walking and creeps when standing. The compensation is explicit per-robot config (`robots.Compensation`, recorded in every run log header): Go2 in-place turns from `cmd_vel` are raised to 0.8 rad/s and the route controller has its own floors; the G1's `cmd_vel` is tracked as a velocity (feed-forward + PI on measured velocity) and it holds its pose at zero command. `WarehouseFleetSimConfig.compensate=False` turns it all off. go2-warehouse (DimOS's own Go2 sim connection) raises slow in-place turns the same way. All numbers were measured in this sim, not on hardware.
 - **Coordination is proven for two robots.** The rules are written for any number of robots and the module takes any ids, but only Go2 + G1 have been run. With three or more, pairwise decisions can form a cycle; the deadlock swap is the only guard and has not been exercised that way.
 - **Coordination is conservative.** Any two paths that come within passing distance count as a conflict, even in a 3.3 m aisle where the planners could squeeze past each other, so one robot waits. There are no timed reservations: the decision uses where the paths go and estimated arrival, not a schedule.

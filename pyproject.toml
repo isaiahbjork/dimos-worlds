@@ -15,6 +15,7 @@ dev = ["pytest>=8"]
 [project.scripts]
 dimos-worlds-replay = "dimos_worlds.replay.replay:main"
 dimos-worlds-goal = "dimos_worlds.goal:main"
+dimos-worlds-send = "dimos_worlds.goal:send_main"
 
 # DimOS external blueprints (dimos run dimos-worlds.<name>). Each package adds its own lines here.
 [project.entry-points."dimos.blueprints"]
