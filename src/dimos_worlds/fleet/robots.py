@@ -78,7 +78,7 @@ class RobotSpec:
     color: str = "#888888"
     comp: Compensation = field(default_factory=Compensation)
     # DimOS planner speed scale (GlobalConfig.nerf_speed): the local planner's top speed and turn rate, x this.
-    # Applied by the in-process fleet (coord.inproc); the warehouse-fleet blueprint does not pass it yet.
+    # Applied by the in-process fleet (coord.inproc) and the warehouse-fleet blueprint (fleet.planner.FleetPlanner).
     nav_speed: float = 1.0
 
     def to_dict(self) -> dict[str, Any]:

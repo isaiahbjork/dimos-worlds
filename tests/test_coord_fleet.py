@@ -56,3 +56,32 @@ def test_stepped_runs_repeat_exactly() -> None:
     assert a.events == b.events
     assert a.arrived == b.arrived and a.final == b.final
     assert ha == hb
+
+
+def test_live_blueprint_gives_each_planner_its_robot_speed() -> None:
+    from dimos_worlds.fleet.blueprint import warehouse_fleet_blueprint
+    from dimos_worlds.fleet.planner import FleetPlanner
+    from dimos_worlds.fleet.robots import warehouse_fleet
+
+    planners = {a.kwargs["frame_id_prefix"]: a.kwargs for a in warehouse_fleet_blueprint.blueprints
+                if a.module is FleetPlanner}
+    assert {rid: kw["nav_speed"] for rid, kw in planners.items()} == {s.id: s.nav_speed for s in warehouse_fleet()}
+
+
+@pytest.mark.parametrize(("run_speed", "nav_speed", "expect"), [(1.0, 0.4, 0.22), (1.0, 1.0, 0.55), (0.5, 0.4, 0.11)])
+def test_fleet_planner_scales_the_run_config_built_in_the_worker(run_speed: float, nav_speed: float,
+                                                                   expect: float) -> None:
+    # The run's config (CLI overrides applied) reaches the module as `g`; only nerf_speed is changed, per robot.
+    from dimos.core.global_config import GlobalConfig
+
+    from dimos_worlds.fleet.planner import FleetPlanner
+
+    g = GlobalConfig(simulation="mujoco", nerf_speed=run_speed, robot_model="cli-override")
+    p = FleetPlanner(robot_width=0.7, robot_rotation_diameter=0.8, nav_speed=nav_speed, g=g)
+    try:
+        gc = p._planner._global_config
+        assert (gc.simulation, gc.robot_model, gc.robot_width, gc.robot_rotation_diameter) == (
+            "mujoco", "cli-override", 0.7, 0.8)
+        assert p._planner._local_planner._controller._speed == pytest.approx(expect)
+    finally:
+        p.stop()

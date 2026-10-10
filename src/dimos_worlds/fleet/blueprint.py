@@ -4,9 +4,9 @@
           │ global_costmap (scene prior + rack footprints + stay-outs)
           ▼
     RobotAwareCostmaps ──go2_costmap / g1_costmap (the OTHER robot painted)──▶ planner per robot
-    {id}/goal_request ──▶ FleetTraffic ──{id}/nav_goal──▶ ReplanningAStarPlanner ──{id}/path, {id}/goal_reached──▶
+    {id}/goal_request ──▶ FleetTraffic ──{id}/nav_goal──▶ FleetPlanner ──{id}/path, {id}/goal_reached──▶
                           FleetTraffic   (right of way: hold, yield to a pocket, retry; settle at the goal)
-    ReplanningAStarPlanner + MovementManager, namespaced go2/ and g1/ ──{id}/cmd_vel──▶ WarehouseFleetSim
+    FleetPlanner + MovementManager, namespaced go2/ and g1/ ──{id}/cmd_vel──▶ WarehouseFleetSim
 
 Send a goal: publish a PoseStamped on `go2/goal_request` (or `g1/goal_request`), or click a point routed to
 `go2/clicked_point`. FleetTraffic forwards it to that robot's planner (`{id}/nav_goal`) and publishes `{id}/arrived`
@@ -20,30 +20,28 @@ from typing import Any
 from dimos.core.coordination.blueprints import autoconnect
 from dimos.core.global_config import global_config
 from dimos.navigation.movement_manager.movement_manager import MovementManager
-try:
-    from dimos.navigation.replanning_a_star.module import ReplanningAStarPlanner
-except ModuleNotFoundError:  # DimOS main (after 0.0.14) moved it under navigation/go2/
-    from dimos.navigation.go2.replanning_a_star.module import ReplanningAStarPlanner
 from dimos.visualization.vis_module import vis_module
 
 from dimos_worlds.fleet.module import ROBOT_IDS, FleetTraffic, RobotAwareCostmaps, WarehouseFleetSim, fleet_agents
+from dimos_worlds.fleet.planner import FleetPlanner
 from dimos_worlds.fleet.robots import RobotSpec, warehouse_fleet
 
 
 def _nav(spec: RobotSpec) -> Any:
-    """Planner + movement manager isolated under the robot id, searching that robot's own costmap."""
+    """Planner + movement manager isolated under the robot id, searching that robot's own costmap, at that robot's
+    planner speed (FleetPlanner: DimOS's ReplanningAStarPlanner with nerf_speed x spec.nav_speed)."""
     rid = spec.id
     return (
         autoconnect(
-            ReplanningAStarPlanner.blueprint(robot_width=2 * spec.body_radius,
-                                             robot_rotation_diameter=spec.turn_diameter),
+            FleetPlanner.blueprint(robot_width=2 * spec.body_radius, robot_rotation_diameter=spec.turn_diameter,
+                                   nav_speed=spec.nav_speed),
             MovementManager.blueprint(),
         )
         .remappings([
-            (ReplanningAStarPlanner, "global_costmap", f"{rid}_costmap"),
+            (FleetPlanner, "global_costmap", f"{rid}_costmap"),
             # goals reach the planner through FleetTraffic only
-            (ReplanningAStarPlanner, "goal_request", "nav_goal"),
-            (ReplanningAStarPlanner, "clicked_point", "nav_clicked_point"),
+            (FleetPlanner, "goal_request", "nav_goal"),
+            (FleetPlanner, "clicked_point", "nav_clicked_point"),
         ])
         # the costmap topic stays global so it meets RobotAwareCostmaps' output
         .namespace(rid, expose={f"{rid}_costmap"})
