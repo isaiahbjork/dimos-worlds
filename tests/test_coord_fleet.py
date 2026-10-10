@@ -1,30 +1,58 @@
-"""Coordination against DimOS's own planners in the shared warehouse (coord.inproc, real time: minutes)."""
+"""Coordination against DimOS's own planners in the shared warehouse (coord.inproc).
+
+Stepped on sim time: the same result on any machine, however loaded. DIMOS_WORLDS_REALTIME=1 also runs the same
+checks with the live timing (planner and coordinator threads on the wall clock: minutes, and load-dependent).
+"""
 from __future__ import annotations
 
 import math
+import os
+
+import pytest
 
 from dimos_worlds.coord.inproc import InProcessFleet
 from dimos_worlds.coord.scenarios import SCENARIOS, passed, run
 from dimos_worlds.fleet.robots import g1, go2
 
+MODES = [False, pytest.param(True, marks=pytest.mark.skipif(
+    os.environ.get("DIMOS_WORLDS_REALTIME") != "1", reason="real-time variant: set DIMOS_WORLDS_REALTIME=1"))]
+IDS = ["stepped", "realtime"]
 
-def test_head_on_in_an_aisle_both_arrive_without_a_resend() -> None:
+
+@pytest.mark.parametrize("realtime", MODES, ids=IDS)
+def test_head_on_in_an_aisle_both_arrive_without_a_resend(realtime: bool) -> None:
     sc = SCENARIOS["head-on"]
-    out = run(sc)
-    assert passed(sc, out), (out.arrived, out.final, out.min_gap_m, out.events)
+    out = run(sc, realtime=realtime)
+    assert passed(sc, out), (out.arrived, out.final, out.min_gap_m, out.falls, out.events)
     assert any("yields to" in e for e in out.events)  # resolved by a yield, not by luck
 
 
-def test_g1_settles_to_goal_heading_and_position() -> None:
-    """The planner alone leaves the G1 up to 0.5 m and tens of degrees off; settled, within 0.2 m and 10 degrees."""
-    fleet = InProcessFleet((go2(3.0, 18.6, 0.0), g1(6.0, 11.0, 0.0)))
+def _g1_settle(realtime: bool):
+    fleet = InProcessFleet((go2(3.0, 18.6, 0.0), g1(6.0, 11.0, 0.0)), realtime=realtime)
     try:
         fleet.start()
         fleet.goal("g1", 9.0, 11.6, math.pi / 2)  # 3 m east, then a quarter turn
         out = fleet.run_until_arrived(120.0)
+        state = fleet.world.state_hash()
     finally:
         fleet.close()
+    return out, state
+
+
+@pytest.mark.parametrize("realtime", MODES, ids=IDS)
+def test_g1_settles_to_goal_heading_and_position(realtime: bool) -> None:
+    """The planner alone leaves the G1 up to 0.5 m and tens of degrees off; settled, within 0.2 m and 10 degrees."""
+    out, _ = _g1_settle(realtime)
     assert "g1" in out.arrived
     dp, dyaw = out.errors("g1")
     assert dp <= 0.2 and math.degrees(dyaw) <= 10.0, (dp, math.degrees(dyaw), out.events)
-    assert out.falls["g1"] == 0
+    assert out.falls["g1"] == 0, out.events
+
+
+def test_stepped_runs_repeat_exactly() -> None:
+    """Same scenario twice: same events at the same sim times, same final state, bit for bit."""
+    a, ha = _g1_settle(False)
+    b, hb = _g1_settle(False)
+    assert a.events == b.events
+    assert a.arrived == b.arrived and a.final == b.final
+    assert ha == hb
