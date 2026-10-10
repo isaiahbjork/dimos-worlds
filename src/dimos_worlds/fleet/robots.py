@@ -77,6 +77,9 @@ class RobotSpec:
     fall_z: float = 0.15  # base height below which the body counts as fallen
     color: str = "#888888"
     comp: Compensation = field(default_factory=Compensation)
+    # DimOS planner speed scale (GlobalConfig.nerf_speed): the local planner's top speed and turn rate, x this.
+    # Applied by the in-process fleet (coord.inproc); the warehouse-fleet blueprint does not pass it yet.
+    nav_speed: float = 1.0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -108,9 +111,12 @@ def g1(x: float, y: float, yaw: float = 0.0, robot_id: str = "g1") -> RobotSpec:
     # cmd_gain 1.45: a 0.5 command walks ~0.73 m/s with DimOS's drift compensation (measured in the warehouse).
     # Open loop it also under-turns while walking (0.3 vx + 0.2 wz -> 0.10 rad/s) and drifts sideways (0.4 vx ->
     # -0.14 m/s lateral): DimOS's planner then reports "veered off track" and gives up. Hence track_velocity.
+    # nav_speed 0.4: DimOS's planner at 0.22 m/s, 0.22 rad/s for the G1. At full planner speed (0.55) it walks
+    # ~0.7 m/s, cannot stop where the planner stops it, and fell in 9% of jittered scenario runs (27 of 300).
     return RobotSpec(id=robot_id, kind="humanoid", mujoco="unitree_g1", x=x, y=y, yaw=yaw, sim_dt=0.002,
                      body_radius=0.35, turn_diameter=0.8, max_vx=0.5, max_wz=0.5, acc_vx=0.8 / 1.45, acc_wz=1.5,
-                     cmd_gain=1.45, fall_z=0.45, color="#c2410c", comp=Compensation(track_velocity=True))
+                     cmd_gain=1.45, fall_z=0.45, color="#c2410c", comp=Compensation(track_velocity=True),
+                     nav_speed=0.4)
 
 
 def warehouse_fleet(compensate: bool = True) -> tuple[RobotSpec, ...]:

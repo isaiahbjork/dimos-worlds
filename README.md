@@ -116,7 +116,14 @@ python -m dimos_worlds.coord.scenarios head-on --realtime  # planner and coordin
 
 By default a scenario is stepped on sim time (`coord.stepped`, `coord.inproc`): world ticks, odometry, each planner's local and monitor loop, the coordinator and the costmaps run from one loop in a fixed order, at the live rates, with no threads or sleeps. The same scenario gives the same result on any load (checked with every core busy) and runs faster than real time. Across platforms the physics still differs in the last bits, and the G1 walk is chaotic, so an x86_64 run can take a different path than an arm64 run. `--realtime` (tests: `DIMOS_WORLDS_REALTIME=1`) runs the live timing; its outcome depends on machine load.
 
-Stepped, macOS arm64, start poses jittered by up to 2 cm and 0.02 rad (30 seeds each): head-on 25/30, crossing 29/30, G1 settle 26/30. 8 of the 9 failures are the G1 falling: commanded slower or backwards while it still walks forward (settling after an overshoot, or an in-place turn after walking), it leans forward, speeds up and falls. The unjittered head-on run is one of them, so `test_head_on_in_an_aisle_both_arrive_without_a_resend` fails until the G1 walk is fixed.
+Stepped, macOS arm64, start poses jittered by up to 2 cm and 0.02 rad, 100 seeds per scenario:
+
+| | head-on | crossing | G1 settle |
+|---|---|---|---|
+| before (G1 at full planner speed) | 84/100, G1 fell in 14 | 97/100, G1 fell in 3 | 87/100, G1 fell in 10 |
+| now | 100/100, no falls | 100/100, no falls | 99/100, no falls (one run settled 0.29 m off) |
+
+Why the G1 fell, and the two changes that stop it: told to slow down or stop while walking forward (settling after an overshoot, an in-place turn after walking, holding a pose), the G1 leans forward, speeds up and falls. A zero command is a backwards one to its policy (DimOS adds -0.18 drift compensation), so above 0.2 m/s forward its tracked vx command no longer goes below the policy's neutral (`world.NEUTRAL_VX`). On its own that removes the falls but the G1 then overshoots where the planner stops it, sometimes into a rack's inflation where DimOS's A* finds no path. So the G1's planner also runs at 0.4 of its speed (`RobotSpec.nav_speed`, DimOS `nerf_speed`: 0.22 m/s, 0.22 rad/s). Each alone, 30 seeds of head-on and settle: neutral floor 25/60 passed, no falls; planner at 0.4, 59/60 passed, 1 fall; both, 59/60, no falls. The `warehouse-fleet` blueprint does not pass `nav_speed` to its planners yet, so a live `dimos run` still drives the G1 at full planner speed.
 
 Measured earlier on macOS (Apple Silicon), real time, each goal sent once:
 

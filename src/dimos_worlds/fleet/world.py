@@ -60,6 +60,13 @@ TRACK_I_MAX = 0.2
 HOLD_KP = 0.5  # zero command: per second, pulls back to the held pose ...
 HOLD_MAX = 0.1  # ... with at most this command
 HOLD_SETTLED = 0.1  # m/s: the held pose is taken once the body has slowed below this
+# No braking command while walking forward (velocity tracking): above FWD_V m/s forward, the vx command stays at or
+# above NEUTRAL_VX, the command the G1 policy reads as zero forward speed (DimOS feeds it 2 x command - 0.18, the
+# 0.18 being its drift compensation for a standing G1). A zero or negative command at walking speed is a request to
+# walk backwards: the G1 leans forward, speeds up and falls (seen when settling after an overshoot, after an in-place
+# turn that wound up the tracking integral, and in hold). From a neutral command it slows down on its own.
+FWD_V = 0.2  # m/s
+NEUTRAL_VX = 0.09  # policy command units
 LEAVE_M = 0.6  # ... and stays reached unless the robot drifts out past this
 TURN_FIRST_M = 1.2  # inside this distance of the goal, turn to face it before stepping (walking while turning orbits)
 VIA_M = 0.45  # a route corner counts as passed this close
@@ -237,6 +244,12 @@ class Body:
             mujoco.mj_step(self.model, self.data)
 
     def _tracked_goal(self) -> np.ndarray:
+        out = np.array(self._tracked_goal_raw(), dtype=np.float64)  # (may be cmd.goal itself: never edit in place)
+        if self.vel[0] > FWD_V:
+            out[0] = max(out[0], NEUTRAL_VX)  # see NEUTRAL_VX
+        return out
+
+    def _tracked_goal_raw(self) -> np.ndarray:
         """cmd.goal as a wanted body velocity: policy command = goal / cmd_gain + PI on the measured velocity.
         A zero command holds the pose it was given at (the G1 policy otherwise creeps ~0.5 m per 100 s standing)."""
         s = self.spec

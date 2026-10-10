@@ -90,7 +90,8 @@ class InProcessFleet:
         self.radii = {s.id: s.body_radius for s in self.specs}
         self.planners: dict[str, Any] = {}
         for s in self.specs:
-            gc = GlobalConfig(robot_width=2 * s.body_radius, robot_rotation_diameter=s.turn_diameter)
+            gc = GlobalConfig(robot_width=2 * s.body_radius, robot_rotation_diameter=s.turn_diameter,
+                              nerf_speed=s.nav_speed)
             self.planners[s.id] = nav_module("global_planner").GlobalPlanner(gc)
         self.realtime = realtime
         self._clock = time.monotonic if realtime else (lambda: self.world.sim_time)
