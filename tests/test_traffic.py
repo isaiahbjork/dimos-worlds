@@ -197,3 +197,38 @@ def test_module_class_has_one_port_set_per_robot() -> None:
             assert f"{rid}_{port}" in hints
     assert "global_costmap" in hints and cls.ROBOT_IDS == ("r1", "r2", "r3")
     assert cls.__module__ == __name__
+
+
+def _open_floor() -> np.ndarray:
+    g = np.zeros((int(10 / RES), int(10 / RES)), dtype=np.int8)
+    g[[0, -1], :] = 100
+    g[:, [0, -1]] = 100
+    return g
+
+
+def test_ring_of_four_each_bound_for_the_next_ones_spot_breaks_the_hold_cycle() -> None:
+    """Every robot's goal is where the next one stands: pairwise, each holds for the next (a cycle nobody leaves).
+    After cycle_s the lowest priority robot steps aside for the one holding for it; the ring unwinds."""
+    corners = [(4.0, 4.0), (6.0, 4.0), (6.0, 6.0), (4.0, 6.0)]
+    ids = ["a", "b", "c", "d"]
+    t = Traffic([Agent(rid, 0.3, priority=4 - i) for i, rid in enumerate(ids)])
+    t.set_map(_open_floor(), 0.0, 0.0, RES)
+    for i, rid in enumerate(ids):
+        t.update_pose(rid, *corners[i], 0.0, 0.0)
+    for i, rid in enumerate(ids):
+        t.request_goal(rid, *corners[(i + 1) % 4], 0.0, 0.0)
+    t.step(0.1)
+    assert sorted(t.status()["grants"]) == ["a>d:hold", "b>a:hold", "c>b:hold", "d>c:hold"]
+    out: list = []
+    for k in range(2, 80):  # nobody moves (each is blocked by the robot at its goal)
+        out += t.step(0.1 * k)
+    assert not any("hold cycle" in e for te, e in t.events if te < 5.0)
+    # a waits for b, b for c, c for d, d for a: d (lowest priority) steps aside for c, which is waiting on it
+    assert any("hold cycle a > b > c > d > a: d steps aside for c" in e for _, e in t.events)
+    assert "c>d:yield" in t.status()["grants"] and t.status()["d"]["mode"] == "yield"
+    (pocket,) = _of(out, Goal, "d")
+    # the pocket is off every other robot's way: a's, b's and c's straight runs to their next corners
+    for i in range(3):
+        (x0, y0), (x1, y1) = corners[i], corners[(i + 1) % 4]
+        seg = np.stack([np.linspace(x0, x1, 21), np.linspace(y0, y1, 21)], axis=1)
+        assert np.min(np.linalg.norm(seg - [pocket.x, pocket.y], axis=1)) >= 0.3 + 0.3 + t.cfg.pocket_margin_m - 1e-9

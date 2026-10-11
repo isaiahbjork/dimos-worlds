@@ -1,4 +1,4 @@
-"""Scripted two-robot traffic scenarios in the warehouse, run against DimOS's planners (coord.inproc).
+"""Scripted traffic scenarios in the warehouse, two to four robots, run against DimOS's planners (coord.inproc).
 
     python -m dimos_worlds.coord.scenarios head-on --runs 5
     python -m dimos_worlds.coord.scenarios crossing --runs 5
@@ -16,6 +16,16 @@ head-on   aisle A-B (2.5 m between racks, 19 m long): the Go2 at its west end, t
           heading through the aisle past the other to the side aisle beyond the other's end.
 crossing  the Go2 walks east along the cross aisle to the dock side while the G1 walks south down the east aisle
           (1.6 m wide) across its path; both are about 5 m from where the paths cross.
+
+Three and four robots (a second and third Go2 body: go2b, go2c; priority in list order):
+
+three-way the junction of the cross aisle and the east aisle: a Go2 from the west bound for the dock, the G1 from
+          the north bound south, a second Go2 from the dock bound west down the cross aisle, head-on with the first.
+convoy    aisle C-D (2.5 m, 19 m long), all three heading east into the dock: a Go2 in front, the G1 behind it and a
+          second Go2 behind the G1, about 2 m apart. Both followers walk behind slower or stopped robots.
+ring      four robots on the corners of a 2.4 m square on the open dock floor, each bound for the next one's corner
+          (counter-clockwise). Every robot's goal is held by the next one, so pairwise right of way makes a cycle of
+          holds; the coordinator breaks it (coord.traffic, hold cycle).
 """
 from __future__ import annotations
 
@@ -28,6 +38,8 @@ import sys
 from dimos_worlds.fleet.robots import RobotSpec, g1, go2
 
 AISLE_AB_Y = 15.35
+AISLE_CD_Y = 7.35
+RING = ((24.8, 6.8), (27.2, 6.8), (27.2, 9.2), (24.8, 9.2))  # counter-clockwise
 
 
 @dataclass(frozen=True)
@@ -50,6 +62,22 @@ SCENARIOS = {
         (go2(17.0, 11.4, 0.0), g1(21.7, 16.0, -math.pi / 2)),
         {"go2": (24.5, 9.0, 0.0), "g1": (21.7, 5.0, -math.pi / 2)},
         timeout_s=200.0),
+    "three-way": Scenario(
+        "three-way",
+        (go2(16.0, 11.4, 0.0), g1(21.7, 16.0, -math.pi / 2), go2(27.5, 10.5, math.pi, robot_id="go2b")),
+        {"go2": (25.0, 8.0, 0.0), "g1": (21.7, 5.0, -math.pi / 2), "go2b": (14.0, 11.4, math.pi)},
+        timeout_s=240.0),
+    "convoy": Scenario(
+        "convoy",
+        (go2(6.6, AISLE_CD_Y, 0.0), g1(4.5, AISLE_CD_Y, 0.0), go2(2.4, AISLE_CD_Y, 0.0, robot_id="go2b")),
+        {"go2": (27.0, 6.5, 0.0), "g1": (24.0, 8.0, 0.0), "go2b": (27.0, 9.5, 0.0)},
+        timeout_s=300.0),
+    "ring": Scenario(
+        "ring",
+        tuple(f(*RING[i], math.pi / 2 * i, **kw) for i, (f, kw) in enumerate(
+            [(go2, {}), (g1, {}), (go2, {"robot_id": "go2b"}), (go2, {"robot_id": "go2c"})])),
+        {rid: (*RING[(i + 1) % 4], math.pi / 2 * i) for i, rid in enumerate(("go2", "g1", "go2b", "go2c"))},
+        timeout_s=240.0),
 }
 
 
@@ -71,7 +99,7 @@ def run(sc: Scenario, *, coordinate: bool = True, verbose: bool = False, realtim
 
 
 def passed(sc: Scenario, out, pos_tol_m: float = 0.5, yaw_tol_deg: float = 15.0) -> bool:
-    """Both arrived and stand at the goal pose (DimOS's planner can report arrival without moving), no falls,
+    """All arrived and stand at the goal pose (DimOS's planner can report arrival without moving), no falls,
     never closer than min_gap."""
     return (out.all_arrived
             and all(out.errors(rid)[0] <= pos_tol_m and math.degrees(out.errors(rid)[1]) <= yaw_tol_deg

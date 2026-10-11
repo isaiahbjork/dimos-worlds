@@ -27,6 +27,17 @@ def test_head_on_in_an_aisle_both_arrive_without_a_resend(realtime: bool) -> Non
     assert any("yields to" in e for e in out.events)  # resolved by a yield, not by luck
 
 
+@pytest.mark.parametrize("name", ["three-way", "convoy", "ring"])
+def test_three_and_four_robots_all_arrive_without_a_resend(name: str) -> None:
+    """Stepped only: three robots at a three-way junction, a convoy of three in a 2.5 m aisle, four on a ring."""
+    sc = SCENARIOS[name]
+    out = run(sc)
+    assert passed(sc, out), (out.arrived, out.final, out.min_gap_m, out.falls, out.events)
+    assert set(out.falls) == {s.id for s in sc.specs} and not any(out.falls.values())
+    if name == "ring":  # broken by the hold-cycle rule, not by the slower pairwise deadlock swap
+        assert any("hold cycle" in e and "steps aside" in e for e in out.events), out.events
+
+
 def _g1_settle(realtime: bool):
     fleet = InProcessFleet((go2(3.0, 18.6, 0.0), g1(6.0, 11.0, 0.0)), realtime=realtime)
     try:

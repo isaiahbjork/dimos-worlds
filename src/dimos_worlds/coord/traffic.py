@@ -14,6 +14,8 @@ robots reach within `horizon_m`, that pair has a conflict and one robot gets the
      robot yields instead.
   4. Neither yet on the other's path (approaching a crossing): the one that reaches the shared spot first by a clear
      margin goes, otherwise the higher priority. The other holds.
+  5. Three or more robots each holding for the next, in a cycle, all stopped or blocked for `cycle_s`: the lowest
+     priority one with a pocket steps aside for the robot holding for it (see `_cycles`).
 
 A holding robot keeps walking until it is `stop_margin_m` (along its path) before the shared stretch, then stops
 (its planner's goal is cancelled) and is given its goal again once the stretch has moved away or cleared. A yielding
@@ -90,6 +92,7 @@ class TrafficConfig:
     retry_s: float = 3.0  # a planner that gave up gets the goal again after this
     stale_s: float = 1.0  # planner results this soon after a command from here are its answer to that command
     deadlock_s: float = 25.0
+    cycle_s: float = 5.0  # every robot in a cycle of holds stopped (or stalled) this long: one of them steps aside
     progress_m: float = 0.3
     arrive_m: float = 0.6  # a planner arrival this close to the goal counts (further: the goal is sent again)
 
@@ -160,6 +163,7 @@ class _Robot:
     settle_t: float = 0.0
     settle_ok_t: float | None = None
     returning: bool = False  # the goal is `home`, after a yield while parked
+    hold_t: float | None = None  # since when it holds (mode "hold")
 
 
 def _resample(pts: np.ndarray, step: float = STEP_M) -> np.ndarray:
@@ -227,6 +231,7 @@ class Traffic:
         self._origin = (0.0, 0.0)
         self._res = 0.1
         self._clear_m: np.ndarray | None = None  # distance to the nearest non-free cell
+        self._cycle_quiet_t = -1e9
 
     # ------------------------------------------------------------------ inputs
     def set_map(self, grid: np.ndarray, origin_x: float, origin_y: float, resolution: float) -> None:
@@ -313,6 +318,7 @@ class Traffic:
                 out += self._settle(r, now)
         self._maintain_grants(now)
         self._detect(now)
+        self._cycles(now)
         self._deadlocks(now)
         out += self._apply(now)
         return out
@@ -425,6 +431,62 @@ class Traffic:
         self.grants[key] = Grant(winner=w.agent.id, loser=l.agent.id, kind=kind, since=now, note=why)
         self._event(now, f"right of way {w.agent.id} over {l.agent.id} ({kind}): {why}")
 
+    def _hold_cycle(self, now: float) -> list[str] | None:
+        """A cycle of robots each holding for the next (A holds for B, B for C, C for A), every one stopped for
+        `cycle_s` (holding, or still walking but blocked by the robot it gives way to). Pairwise right of way cannot see it: each grant on its own is right. First one in id order."""
+        waits: dict[str, list[str]] = {}
+        for g in self.grants.values():
+            l = self.robots[g.loser]
+            if g.kind != "hold" or l.mode not in ("hold", "go"):
+                continue
+            held = l.mode == "hold" and l.hold_t is not None and now - l.hold_t >= self.cfg.cycle_s
+            stalled = now - max(l.moved_t, g.since, l.hold_t or -1e9) >= self.cfg.cycle_s  # walking into the winner
+            if held or stalled:
+                waits.setdefault(g.loser, []).append(g.winner)
+        for start in sorted(waits):
+            path, seen = [start], {start}
+            stack = [(start, iter(sorted(waits[start])))]
+            while stack:
+                node, it = stack[-1]
+                nxt = next(it, None)
+                if nxt is None:
+                    stack.pop()
+                    path.pop()
+                    continue
+                if nxt == start and len(path) > 2:
+                    return list(path)
+                if nxt in seen or nxt not in waits:
+                    continue
+                seen.add(nxt)
+                path.append(nxt)
+                stack.append((nxt, iter(sorted(waits[nxt]))))
+        return None
+
+    def _cycles(self, now: float) -> None:
+        """Break a hold cycle of three or more: the lowest priority robot in it that has a pocket steps aside for
+        the robot holding for it. That one walks on, the ring unwinds behind it, and the robot in the pocket gets its
+        goal back once nobody's path comes near its own. (Two robots holding for each other are a head-on: _grant
+        and the deadlock swap handle them.)"""
+        if now < self._cycle_quiet_t:
+            return
+        cyc = self._hold_cycle(now)
+        if cyc is None:
+            return
+        n = len(cyc)
+        waiter = {cyc[(i + 1) % n]: cyc[i] for i in range(n)}  # robot -> the one holding for it
+        for rid in sorted(cyc, key=lambda r: (self.robots[r].agent.priority, r)):
+            x, p = self.robots[rid], self.robots[waiter[rid]]
+            if self._find_pocket(x, p) is None:
+                continue
+            key = frozenset((rid, p.agent.id))
+            self.grants[key] = Grant(winner=p.agent.id, loser=rid, kind="yield", since=now,
+                                     note="hold cycle")
+            p.moved_t = x.moved_t = now
+            self._event(now, f"hold cycle {' > '.join(cyc + [cyc[0]])}: {rid} steps aside for {p.agent.id}")
+            return
+        self._cycle_quiet_t = now + self.cfg.deadlock_s  # no pocket for anyone: the deadlock rules act meanwhile
+        self._event(now, f"hold cycle {' > '.join(cyc + [cyc[0]])}: no pocket for any of them")
+
     def _deadlocks(self, now: float) -> None:
         cfg = self.cfg
         for key, g in list(self.grants.items()):
@@ -514,6 +576,7 @@ class Traffic:
                     out.append(self._send_goal(r, now, "released from pocket"))
             if hold and r.mode == "go":
                 r.mode = "hold"
+                r.hold_t = now
                 out.append(Stop(rid, *r.pose, reason="holds for right of way"))
                 r.last_cmd_t = now
                 self._event(now, f"{rid}: holds")
@@ -575,7 +638,20 @@ class Traffic:
     # ---- pockets
     def _find_pocket(self, r: _Robot, w: _Robot,
                      skip: tuple[float, float, float] | None = None) -> tuple[float, float, float] | None:
-        """Nearest free spot (path length from r) off w's whole remaining path, reached without passing w."""
+        """Nearest free spot (path length from r) off w's whole remaining path, reached without passing w. With more
+        robots, also off every other robot's remaining path (a parked one: its spot) and never through a body; when
+        no such spot exists, off w's path only."""
+        others = [o for oid, o in sorted(self.robots.items())
+                  if oid not in (r.agent.id, w.agent.id) and o.pose is not None]
+        if others:
+            pts = [self._wanted(o)[0] if self._active(o) else np.array([o.pose[:2]]) for o in others]
+            spot = self._pocket_search(r, w, skip, others, np.concatenate(pts, axis=0))
+            if spot is not None:
+                return spot
+        return self._pocket_search(r, w, skip, others, None)
+
+    def _pocket_search(self, r: _Robot, w: _Robot, skip: tuple[float, float, float] | None, others: list[_Robot],
+                       avoid: np.ndarray | None) -> tuple[float, float, float] | None:
         if self._grid is None or self._clear_m is None or r.pose is None or w.pose is None:
             return None
         from scipy.ndimage import distance_transform_edt
@@ -597,7 +673,17 @@ class Traffic:
         cx = ox + (xs + 0.5) * res
         cy = oy + (ys + 0.5) * res
         passable &= np.hypot(cx - w.pose[0], cy - w.pose[1]) >= r.agent.radius + w.agent.radius
+        for o in others:
+            assert o.pose is not None
+            passable &= np.hypot(cx - o.pose[0], cy - o.pose[1]) >= r.agent.radius + o.agent.radius
         target = (self._clear_m >= body) & (to_path >= need) & passable
+        if avoid is not None:
+            omark = np.ones((h, wd), dtype=bool)
+            oij = np.floor((avoid - [ox, oy]) / res).astype(int)
+            ook = (oij[:, 0] >= 0) & (oij[:, 0] < wd) & (oij[:, 1] >= 0) & (oij[:, 1] < h)
+            omark[oij[ook, 1], oij[ook, 0]] = False
+            reach = max(o.agent.radius for o in others)
+            target &= distance_transform_edt(omark) * res - 0.5 * res >= r.agent.radius + reach + cfg.pocket_margin_m
         if skip is not None:
             target &= np.hypot(cx - skip[0], cy - skip[1]) > 0.5
         si = int(math.floor((r.pose[0] - ox) / res))
