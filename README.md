@@ -6,6 +6,7 @@ Sim worlds for [DimOS](https://github.com/dimensionalOS/dimos), shipped as DimOS
 - **Warehouse.** 30 x 20 m building with pallet racking, pallets, conveyor and pick table, built from a layout file, with a known-occupancy prior map for DimOS's planner.
 - **Shared-world fleet.** A Go2 and a G1 in one MuJoCo world, each on its own policy timestep, each with its own DimOS planner, and costmaps that show each robot the other.
 - **Navigation-level coordination.** A DimOS module between goals and the planners: right of way from the planned paths, hold short of a shared stretch, yield to a pocket in head-on meetings, automatic retries, deadlock swap, and settling at the goal pose. No goal resends by hand.
+- **Demo plant.** 56 x 36 m process plant (control room, three pumps, compressor, tank bund, pipe rack) with 7 analog gauges, motors, valves and drip trays whose readings come from scripted events (`gauge_high`, `gauge_low`, `motor_hot`, `valve_wrong`, `leak`), a known-occupancy prior map, and a Blender render service for photoreal frames from any pose.
 - **Arm cell (optional).** A KUKA iiwa 14 on the warehouse pedestal, positional IK pick and place of a tote, as its own DimOS module.
 - **Safety watchdog.** A DimOS module between a robot's commands and the robot: stops and latches on a fall or tilt, a lost command link, or stale odometry/IMU, and stays stopped until an explicit reset.
 - **Deterministic replay.** A command log plus periodic state hashes. A sim run re-executes bit-identically.
@@ -58,6 +59,7 @@ Blueprints register under the `dimos.blueprints` entry-point group, so DimOS fin
 ```
 $ dimos list | grep dimos-worlds
   dimos-worlds.go2-lot-night
+  dimos-worlds.go2-plant
   dimos-worlds.go2-warehouse
   dimos-worlds.lot-cctv
   dimos-worlds.warehouse-arm
@@ -179,6 +181,35 @@ The rules are plain Python (`safety.watchdog.Watchdog`, time passed in by the ca
 
 Tested against a walking Go2 (0.5 m/s, commands every 0.1 s) in the shared MuJoCo world, stepped on sim time (`tests/test_safety_sim.py`): walking tilt peaks at 2.8 degrees (G1: 5.3); a 40 N m roll push trips `fall` while the body is still tipping, before it hits the floor; a reset is refused while it lies on its side; once the sim stands it back up it stays put although the sender keeps asking for 0.5 m/s, and walks again only after a reset. Commands cut mid-walk: `link_lost` 0.52 s after the last command, stopped within 0.1 m; without the watchdog the same Go2 walks on. Odometry cut: `odom_stale`, stopped.
 
+## Demo plant
+
+`go2-plant` runs DimOS's Go2 stack in the plant (MuJoCo gait, `ReplanningAStarPlanner` on the plant's prior map), starting at the dock (5.0, 23.6). Places (`go_to_place` skill): the dock, one station per instrument group, stay-out zones over the stairs.
+
+```
+dimos --viewer none run dimos-worlds.go2-plant
+dimos-worlds-goal /goal_request 22.55 13.175    # the P-101 gauge stand
+```
+
+The plant's state is a list of events in a state file (`DIMOS_WORLDS_PLANT_STATE`, default `/tmp/dimos-worlds-plant-state.json`); `plant_state.truth(events)` gives every instrument's value. Dials start at 225 degrees and sweep 270 degrees clockwise.
+
+Photoreal frames (Blender 5.2 + Cycles, a GPU; not a Python dependency):
+
+```
+python src/dimos_worlds/plant/assets/fetch.py       # Poly Haven (CC0) textures and HDRIs
+python src/dimos_worlds/plant/make_textures.py      # dial faces, plates and signs
+/path/to/blender -b --factory-startup --disable-autoexec -P src/dimos_worlds/plant/render/build_scene.py   # builds plant/assets/cache/plant.blend
+DIMOS_WORLDS_BLENDER=/path/to/blender dimos-worlds-plant-render --port 8790
+curl -s localhost:8790/v1/view -d '{"pos":[22.55,13.5,0.32],"dir":[0,0.66,0.75],"hfov_deg":30,"w":1280,"h":720,"light":"day"}' > view.jpg
+```
+
+`/v1/view` renders the camera from a pose with the current events applied (needles, valve positions, leaks), optional head lamp. `motor_hot` only changes the motor temperatures in `plant_state.truth`; no frame shows heat. `DIMOS_WORLDS_CYCLES_DEVICE=CUDA` skips OptiX when its kernels fail to compile on your driver.
+
+### Gauge rounds
+
+`python -m dimos_worlds.plant.gauge_loop --out runs/day1 --events gauge_low:TG-201:8` walks the round with a gauge reader and an active-perception agent in the loop: every agent action (walk, aim, zoom, lamp) becomes a DimOS goal or a render request, and every step is logged (`steps.jsonl`, `poses.jsonl`, `results.json`, raw and annotated frames). It needs the render service and `go2-plant` running, and gauge-rounds importable as `gaugerounds`. gauge-rounds is a separate package (the OpenCV 5 analog gauge reader and the agent) and is not public, so this loop does not run from this repo alone. Everything else in the plant works without it.
+
+One run on Ubuntu 22.04 (RTX 3090, Cycles CUDA), PTZ payload, `--only PG-401,TG-201 --events gauge_low:TG-201:8`: PG-401 read 6.55 bar (truth 6.6, 0.5% of span), TG-201 read 8.43 °C (truth 8, 0.4% of span) and called low, 8 views, 3.0 min.
+
 ## Arm cell
 
 `warehouse-arm` puts MuJoCo Menagerie's `kuka_iiwa_14` (fetched with DimOS's Menagerie copy, not vendored) on the pedestal by the conveyor, with a suction tool, and makes tote-09 at the conveyor's end a free body. Commands name two reach targets from `layout.json` (`conveyor`, `pick_table`, `pallet-2`):
@@ -234,7 +265,7 @@ Assets are fetched at build time into `*/assets/cache/`, never committed. `downl
 
 ## Known limitations
 
-- **Verified on macOS (Apple Silicon) and Ubuntu 22.04 x86_64 (RTX 3090, EGL).** On Linux: the test suite, the opt-in lot e2e, all five blueprints under `dimos --viewer none run` (goals sent and arrival checked on odometry; warehouse-arm's conveyor-to-pick-table move), replay of a Linux-recorded run, and the Blender render path. The coordinated head-on test (`test_coord_fleet.py`) failed once in three Linux runs; both robots arrived in the failing run too. CI runs the tests on GitHub's Ubuntu and macOS runners. Not tried: Linux arm64, Windows, Linux without a GPU outside CI.
+- **Verified on macOS (Apple Silicon) and Ubuntu 22.04 x86_64 (RTX 3090, EGL).** On Linux: the test suite, the opt-in lot e2e, the five original blueprints under `dimos --viewer none run` (goals sent and arrival checked on odometry; warehouse-arm's conveyor-to-pick-table move), replay of a Linux-recorded run, and the Blender render path. The coordinated head-on test (`test_coord_fleet.py`) failed once in three Linux runs; both robots arrived in the failing run too. CI runs the tests on GitHub's Ubuntu and macOS runners. Not tried: Linux arm64, Windows, Linux without a GPU outside CI.
 - **Blender path: stills only.** The builders, `warehouse/render/render.py`, the lot's `render/render_frames.py` and `docs/media/render_heroes.py` ran (Blender 5.2.2, Cycles/OptiX). Robots in those renders are placed, not driven by a sim run; `build_scene.py --state` (posing a recorded moment) has not been run.
 - **Bit-exact replay needs the same stack.** Replay needs the MuJoCo, ONNX Runtime, numpy and OS/CPU architecture the run was recorded on (the log header records them). macOS arm64 and Linux x86_64 logs do not replay on each other. A changed scene file is refused.
 - **G1 arrival times are chaotic across platforms.** Same commands, different float rounding: on Linux x86_64 the G1 overshoots a route corner and turns in place where macOS arm64 does not, and arrives about 8 s later (25 s vs 17 s in the fleet test). It still arrives. Each platform is deterministic with itself. In one coordinated warehouse-fleet run on Linux the G1 fell twice (recovered, arrived); replay reproduces the falls. That was before the neutral floor and the 0.4 planner speed; the live runs since are macOS only.
@@ -248,6 +279,9 @@ Assets are fetched at build time into `*/assets/cache/`, never committed. `downl
 - **Slow corners look "stuck" to DimOS.** Its sim stuck check (under 1 m in 8 s) fires repeatedly while the Go2 turns around rack ends. The planner replans each time and still arrives: 2 min 10 s from (3, 11.4) to (15, 7.5) in one verified run.
 - **Go2 goal pose is the planner's.** The Go2 settles its heading only (11 degrees off at worst in the runs above); its position is where DimOS's planner stops it, up to about 0.25 m off.
 - **The arm cell is a separate simulation.** It has its own MuJoCo model and thread: the walking robots do not see it move (they keep out of its stay-out anyway), and arm runs are not in the shared world's run log or replay. The suction grip is kinematic (the gripped tote follows the tool). One tote is free; the others stay static scenery.
+- **Plant gauge rounds assume a PTZ head.** The camera is 0.32 m up on an assumed pan-tilt-zoom payload (tilt to 70 degrees, optical zoom to 4x), UNVERIFIED on hardware; `--stock-camera` uses the Go2's own camera (body pitch, digital zoom). Pan, tilt and the last turn toward a dial are render-only: the sim dog does not pitch and does not walk the final yaw. DimOS's planner stops within about 0.25 m of a goal, so moves shorter than 1 m are overshot by 0.25 m. Rendered frames are not camera captures.
+- **The gauge reader needs OpenCV 5 with contrib.** DimOS 0.0.14 installs `opencv-contrib-python` 4.x (it pins `<5`); gauge-rounds needs OpenCV 5.x with the contrib modules. Having both installed works (cv2 5.0.0 resolved to the contrib build in our run), but pip can leave mixed versions; check `python -c "import cv2; print(cv2.__version__); cv2.ximgproc"`.
+- **The plant has run on Linux only.** `go2-plant`, the render service and the gauge loop have run on Ubuntu 22.04 x86_64 (RTX 3090, Cycles CUDA); on macOS only `tests/test_plant.py` has run.
 - **MuJoCo visuals are boxes with flat lighting.** Fine for pipelines and change detection, not for judging what a real night camera sees.
 - **Lot CCTV frames are rendered, not recorded.** Camera model parameters are typical datasheet values, UNVERIFIED against any specific camera.
 

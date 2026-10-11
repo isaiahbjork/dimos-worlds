@@ -16,6 +16,7 @@ dev = ["pytest>=8"]
 dimos-worlds-replay = "dimos_worlds.replay.replay:main"
 dimos-worlds-goal = "dimos_worlds.goal:main"
 dimos-worlds-send = "dimos_worlds.goal:send_main"
+dimos-worlds-plant-render = "dimos_worlds.plant.pov_service:main"
 
 # DimOS external blueprints (dimos run dimos-worlds.<name>). Each package adds its own lines here.
 [project.entry-points."dimos.blueprints"]
@@ -24,6 +25,7 @@ warehouse-fleet = "dimos_worlds.fleet.blueprint:warehouse_fleet_blueprint"
 go2-lot-night = "dimos_worlds.lot.blueprint:go2_lot_night"
 lot-cctv = "dimos_worlds.lot.cctv:LotCctv"
 warehouse-arm = "dimos_worlds.arm.blueprint:warehouse_arm"
+go2-plant = "dimos_worlds.plant.blueprint:go2_plant"
 
 [build-system]
 requires = ["hatchling"]
