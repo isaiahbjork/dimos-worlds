@@ -7,6 +7,7 @@ Sim worlds for [DimOS](https://github.com/dimensionalOS/dimos), shipped as DimOS
 - **Shared-world fleet.** A Go2 and a G1 in one MuJoCo world, each on its own policy timestep, each with its own DimOS planner, and costmaps that show each robot the other.
 - **Navigation-level coordination.** A DimOS module between goals and the planners: right of way from the planned paths, hold short of a shared stretch, yield to a pocket in head-on meetings, automatic retries, deadlock swap, and settling at the goal pose. No goal resends by hand.
 - **Arm cell (optional).** A KUKA iiwa 14 on the warehouse pedestal, positional IK pick and place of a tote, as its own DimOS module.
+- **Safety watchdog.** A DimOS module between a robot's commands and the robot: stops and latches on a fall or tilt, a lost command link, or stale odometry/IMU, and stays stopped until an explicit reset.
 - **Deterministic replay.** A command log plus periodic state hashes. A sim run re-executes bit-identically.
 
 ![A Go2 in the night lot, Blender Cycles render](docs/media/lot-night-go2.jpg)
@@ -98,6 +99,9 @@ In `warehouse-fleet`, goals go to `FleetTraffic` (`dimos_worlds.coord`), not str
 2. A robot already on the other's path, while the other is not on its path, goes first (a crossing, or a robot being followed). The other holds.
 3. Both on each other's path (head-on in an aisle): the lower priority robot yields to a pocket, the nearest free spot off the winner's whole remaining path that it can reach without passing the winner. No pocket for it: the other yields.
 4. Neither yet on the other's path: whoever reaches the shared spot first by more than 3 s goes, otherwise priority (list order in `robots.warehouse_fleet()`: Go2, then G1). The other holds.
+5. Three or more robots each holding for the next (A for B, B for C, C for A; each robot's goal is held by the next one), every one stopped or blocked for 5 s: a hold cycle. Each pairwise decision is right on its own, so nobody would move. The lowest priority robot in the cycle that has a pocket steps aside for the robot holding for it; the ring unwinds behind that one, and the robot in the pocket gets its goal back once nobody's path comes near its own.
+
+With three or more robots, a pocket also keeps off every other robot's remaining path (a parked robot: its spot) and is never reached through another body; when no such spot exists, it keeps off the winner's path only.
 
 A holding robot walks until it is 1 m short of the shared stretch and stands there (its planner gets its own pose as the goal) until the stretch moves on or clears. A yielding robot gets the pocket as its goal and its real goal back once the winner's path no longer comes near its own. A planner that gives up, or reports arrival away from the goal, gets the goal again after 3 s. If the robot with the right of way makes no progress for 25 s, the right of way is swapped. Every decision is logged (`traffic: ...`).
 
@@ -112,6 +116,9 @@ python -m dimos_worlds.coord.scenarios head-on --runs 5    # aisle A-B, 2.5 m wi
 python -m dimos_worlds.coord.scenarios crossing --runs 5   # Go2 east along the cross aisle, G1 south down the 1.6 m east aisle across it
 python -m dimos_worlds.coord.scenarios head-on --no-coord  # the same, planners only
 python -m dimos_worlds.coord.scenarios head-on --realtime  # planner and coordinator threads on the wall clock, as live
+python -m dimos_worlds.coord.scenarios three-way   # Go2 from the west, G1 from the north, a second Go2 from the dock, one junction
+python -m dimos_worlds.coord.scenarios convoy      # Go2, G1, Go2 in a line through the 2.5 m aisle C-D, ~2 m apart
+python -m dimos_worlds.coord.scenarios ring        # four robots (G1 + three Go2) on a 2.4 m square, each bound for the next one's corner
 ```
 
 By default a scenario is stepped on sim time (`coord.stepped`, `coord.inproc`): world ticks, odometry, each planner's local and monitor loop, the coordinator and the costmaps run from one loop in a fixed order, at the live rates, with no threads or sleeps. The same scenario gives the same result on any load (checked with every core busy) and runs faster than real time. Across platforms the physics still differs in the last bits, and the G1 walk is chaotic, so an x86_64 run can take a different path than an arm64 run. `--realtime` (tests: `DIMOS_WORLDS_REALTIME=1`) runs the live timing; its outcome depends on machine load.
@@ -135,6 +142,40 @@ Measured earlier on macOS (Apple Silicon), real time, each goal sent once:
 Live, with `dimos run dimos-worlds.warehouse-fleet` and each goal published once: Go2 and G1 sent to opposite ends of aisle A-B (head-on), the G1 yielded to a pocket in the east aisle, the Go2's planner gave up once next to it and got its goal again from the coordinator, both arrived (G1 0.05 m and 2 degrees off, Go2 0.09 m and 5 degrees), and `dimos-worlds-replay` matched all 54 state hashes of that run.
 
 Live again with the G1's planner at 0.4 speed, macOS (Apple Silicon): the G1 first sent to the east end of aisle A-B (19.8, 15.35) and the Go2 to its west end (3, 15.35), then each sent past the other (Go2 to (21.7, 15.35), G1 to (1.1, 15.35)), each head-on goal published once with `dimos-worlds-goal`. Three runs: both arrived every run (Go2 in 42-44 s, G1 in 149-152 s, Go2 within 0.16 m, G1 within 0.08 m of the goal), the G1 yielded to a pocket by the east aisle every run, closest 0.96 m between centres, the G1's odometry height never below 0.69 m (it counts as fallen below 0.45), no `fell` event in any run log, G1 top speed over odometry 0.34-0.43 m/s. `dimos-worlds-replay` matched every state hash of all three runs (66, 64 and 244).
+
+Three and four robots, stepped, macOS arm64, each goal sent once (one run each; stepped runs repeat exactly):
+
+| scenario | result |
+|---|---|
+| three-way | all arrive: Go2 22 s, second Go2 60 s, G1 66 s, all within 0.09 m and 8 degrees; the second Go2 holds while the first leaves the cross aisle; closest 1.05 m; no falls |
+| convoy | all arrive: Go2 40 s, second Go2 75 s, G1 107 s, within 0.19 m and 10 degrees; both followers keep their distance; closest 2.07 m; no falls |
+| ring | all four arrive: second Go2 23 s, G1 52 s, third Go2 58 s, Go2 86 s, within 0.25 m and 10 degrees; hold cycle broken at 5 s; closest 1.22 m; no falls. Without the hold-cycle rule the pairwise deadlock swap got there too, after 25 s of standing still: last arrival 137 s |
+
+## Safety watchdog
+
+DimOS (0.0.14) has no Go2 fall detection and no stop on a lost command link in its stack. In its MuJoCo sim the robot keeps walking on its last velocity command (the sim's controller holds whatever was written last); what the real Go2 firmware does when commands stop is not checked here. `SafetyWatchdog` (`dimos_worlds.safety.module`) sits between a robot's command source and the robot and passes commands through until one of these trips it:
+
+| trip | when |
+|---|---|
+| `fall` | roll or pitch past 40 degrees for 0.1 s, from the `imu` input (or the odometry orientation while no IMU message has been seen) |
+| `link_lost` | the last command asked for motion and no command came for 0.5 s (DimOS's local planner sends at 10 Hz while it drives) |
+| `odom_stale` | no odometry for 0.5 s, once odometry has been seen |
+| `imu_stale` | no IMU for 0.5 s, once an IMU message has been seen |
+
+A trip latches: from then on the watchdog sends zero velocity, on every tick and in place of every command, until a reset (`reset` RPC, or `True` on `safety_reset`). A reset is refused while roll or pitch is above 15 degrees or odometry or the IMU is stale, and a command from before the reset is not resumed. Every trip, reset and refused reset is published on `safety_alert` (JSON: `t`, `kind`, `message`, `latched`, ...) and handed to `watchdog.on_alert` callbacks in-process; `safety_stopped` carries the latch.
+
+```python
+from dimos_worlds.safety.module import SafetyWatchdog
+
+autoconnect(..., SafetyWatchdog.blueprint(robot="go2")).remappings([
+    (MovementManager, "cmd_vel", "cmd_vel_unsafe"),
+    (SafetyWatchdog, "cmd_vel_in", "cmd_vel_unsafe"),
+])
+```
+
+The rules are plain Python (`safety.watchdog.Watchdog`, time passed in by the caller) and take a Unitree lowstate as DimOS's Go2 connection receives it (`Watchdog.lowstate(msg, now)` reads `imu_state.rpy`). DimOS's Go2 connection keeps that lowstate to itself and DimOS's MuJoCo sim emits none, so the module's `imu` input is a `sensor_msgs.Imu`; the `lowstate` RPC takes the dict.
+
+Tested against a walking Go2 (0.5 m/s, commands every 0.1 s) in the shared MuJoCo world, stepped on sim time (`tests/test_safety_sim.py`): walking tilt peaks at 2.8 degrees (G1: 5.3); a 40 N m roll push trips `fall` while the body is still tipping, before it hits the floor; a reset is refused while it lies on its side; once the sim stands it back up it stays put although the sender keeps asking for 0.5 m/s, and walks again only after a reset. Commands cut mid-walk: `link_lost` 0.52 s after the last command, stopped within 0.1 m; without the watchdog the same Go2 walks on. Odometry cut: `odom_stale`, stopped.
 
 ## Arm cell
 
@@ -197,7 +238,8 @@ Assets are fetched at build time into `*/assets/cache/`, never committed. `downl
 - **G1 arrival times are chaotic across platforms.** Same commands, different float rounding: on Linux x86_64 the G1 overshoots a route corner and turns in place where macOS arm64 does not, and arrives about 8 s later (25 s vs 17 s in the fleet test). It still arrives. Each platform is deterministic with itself. In one coordinated warehouse-fleet run on Linux the G1 fell twice (recovered, arrived); replay reproduces the falls. That was before the neutral floor and the 0.4 planner speed; the live runs since are macOS only.
 - **Policy dead bands are compensated, not fixed.** DimOS's Go1/Go2 walking policy barely turns in place below about 0.8 rad/s and does not walk forward below about 0.3. The G1 policy walks about 1.45x the command, under-turns while walking and creeps when standing. The compensation is explicit per-robot config (`robots.Compensation`, recorded in every run log header): Go2 in-place turns from `cmd_vel` are raised to 0.8 rad/s and the route controller has its own floors; the G1's `cmd_vel` is tracked as a velocity (feed-forward + PI on measured velocity) and it holds its pose at zero command. `WarehouseFleetSimConfig.compensate=False` turns it all off. go2-warehouse (DimOS's own Go2 sim connection) raises slow in-place turns the same way. All numbers were measured in this sim, not on hardware.
 - **`dimos-worlds-goal` can still lose a goal.** It waits 3 s for peer discovery, but in the live runs above 1 of 16 goals never reached FleetTraffic (macOS). A goal that landed shows as a `traffic: <id> goal (...) [requested]` log line and a message on `/<id>/nav_goal`; if neither appears, send it again.
-- **Coordination is proven for two robots.** The rules are written for any number of robots and the module takes any ids, but only Go2 + G1 have been run. With three or more, pairwise decisions can form a cycle; the deadlock swap is the only guard and has not been exercised that way.
+- **Three and four robots: stepped scenarios only.** `three-way`, `convoy` and `ring` run in the in-process stepped fleet; the `warehouse-fleet` blueprint still has two robots (Go2 + G1), and no live `dimos run` with more has been done. The extra robots are Go2 bodies; one G1 per scenario. The hold-cycle rule breaks a cycle of holds; a cycle of yields, or a cycle with no free floor for any member, still falls back to the pairwise deadlock swap, which can swap a whole ring at once.
+- **The safety watchdog is not in the blueprints.** It is tested in-process against the MuJoCo Go2 and composes into a blueprint (see above), but no shipped blueprint inserts it and it has not run under `dimos run` or on hardware. The 40 degree tilt threshold, the 0.5 s timeouts and the push used in the test are sim values, UNVERIFIED on a real Go2.
 - **Coordination is conservative.** Any two paths that come within passing distance count as a conflict, even in a 3.3 m aisle where the planners could squeeze past each other, so one robot waits. There are no timed reservations: the decision uses where the paths go and estimated arrival, not a schedule.
 - **A pocket needs free floor.** A 2.5 m aisle is too narrow to step aside in (bodies plus margins need about 2.7 m), so a yielding robot backs out of the aisle. A dead-end with no pocket falls back to holding and the deadlock swap.
 - **DimOS's planner sometimes reports arrival without moving.** When a robot already faces along its new path, `ReplanningAStarPlanner` (dimos 0.0.14) can go straight to its final rotation and report the goal reached at the start. The coordinator sees the robot is not at the goal and sends the goal again 3 s later; without the coordinator the robot just stays.

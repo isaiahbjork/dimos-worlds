@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Safety watchdog (`dimos_worlds.safety`): a DimOS module (`SafetyWatchdog`) between a robot's command source and the robot. Stops and latches on a fall or tilt (IMU roll/pitch, or odometry orientation without an IMU; Unitree lowstate `imu_state.rpy` via `Watchdog.lowstate` / the `lowstate` RPC), on a lost command link (motion asked for, then no command for 0.5 s), and on stale odometry or IMU. Zero velocity until an explicit reset, which is refused while the robot is tilted or its state is stale. Alerts as JSON on `safety_alert` and as Python callbacks. Tested against a walking Go2 in MuJoCo: tipped over, link cut, odometry cut.
+- Coordination for three and four robots: a hold cycle (A holds for B, B for C, C for A) is broken after 5 s by the lowest-priority robot stepping aside for the one holding for it; pockets keep off every other robot's path and body. Stepped scenarios `three-way`, `convoy` and `ring` (Go2, G1 and up to two more Go2 bodies).
 - Navigation-level coordination for robots that each run their own DimOS planner (`dimos_worlds.coord`): right of way from planned paths, hold short of a shared stretch, yield to a pocket in head-on meetings, automatic goal retries when a planner gives up, deadlock swap. `traffic_coordinator(ids, name)` builds the DimOS module for any robot ids; `warehouse-fleet` routes goals through it (`{id}/goal_request` -> `{id}/nav_goal`) and publishes `{id}/arrived`.
 - Settling at the goal after the planner reports arrival: the G1 closes position and heading to 0.12 m / 6 degrees, the Go2 its heading.
 - Scripted head-on and crossing scenarios against DimOS's planners (`python -m dimos_worlds.coord.scenarios`), in-process fleet harness (`coord.inproc`).
