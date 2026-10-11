@@ -151,6 +151,8 @@ Three and four robots, stepped, macOS arm64, each goal sent once (one run each; 
 | convoy | all arrive: Go2 40 s, second Go2 75 s, G1 107 s, within 0.19 m and 10 degrees; both followers keep their distance; closest 2.07 m; no falls |
 | ring | all four arrive: second Go2 23 s, G1 52 s, third Go2 58 s, Go2 86 s, within 0.25 m and 10 degrees; hold cycle broken at 5 s; closest 1.22 m; no falls. Without the hold-cycle rule the pairwise deadlock swap got there too, after 25 s of standing still: last arrival 137 s |
 
+Start poses jittered by up to 2 cm and 0.02 rad, 20 seeds each, stepped, macOS arm64: three-way 20/20, convoy 20/20, ring 19/20, no falls in any of the 60 runs. The ring run that failed had all four arrive, but two bodies came within 0.69 m of each other, under the 0.7 m bar (the footprint radii add up to 0.6-0.65 m). Planners only (`--no-coord`), one run each: three-way 0/1 (the first Go2's planner reported arrival at the start, 9.6 m from its goal), convoy 0/1 (the G1 never left its start), ring 0/1 (nobody moved).
+
 ## Safety watchdog
 
 DimOS (0.0.14) has no Go2 fall detection and no stop on a lost command link in its stack. In its MuJoCo sim the robot keeps walking on its last velocity command (the sim's controller holds whatever was written last); what the real Go2 firmware does when commands stop is not checked here. `SafetyWatchdog` (`dimos_worlds.safety.module`) sits between a robot's command source and the robot and passes commands through until one of these trips it:
