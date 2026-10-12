@@ -145,7 +145,10 @@ def _one(job: tuple[str, int | None, bool, bool, bool]) -> tuple[str, bool, str,
     name, seed, coordinate, realtime, verbose = job
     logging.basicConfig(level=logging.WARNING)
     sc = SCENARIOS[name] if seed is None else jittered(SCENARIOS[name], seed)
-    out = run(sc, coordinate=coordinate, realtime=realtime)
+    try:
+        out = run(sc, coordinate=coordinate, realtime=realtime)
+    except Exception as e:  # a run that crashed (e.g. out of disk) is reported, the sweep goes on
+        return sc.name, False, f"ERROR {type(e).__name__}: {e}", 0, []
     return sc.name, passed(sc, out), summary(sc, out), sum(out.falls.values()), out.events if verbose else []
 
 
@@ -177,7 +180,8 @@ def main(argv: list[str] | None = None) -> int:
         falls += nfalls
         for e in events:
             print("   ", e)
-        print(f"{name} run {i + 1}: {'PASS' if good else 'FAIL'}  {text}", flush=True)
+        print(f"{name} run {i + 1}: {'PASS' if good else 'ERROR' if text.startswith('ERROR') else 'FAIL'}  {text}",
+              flush=True)
     if pool is not None:
         pool.close()
     print(f"{a.scenario}: {ok}/{len(jobs)} passed, {falls} falls "

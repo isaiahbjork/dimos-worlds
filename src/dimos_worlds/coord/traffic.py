@@ -107,6 +107,7 @@ class TrafficConfig:
     guard_margin_m: float = 0.15
     guard_release_m: float = 0.1
     guard_release_s: float = 1.5  # ... and has stayed clear this long (a stop-and-go every second gets nowhere)
+    guard_stuck_s: float = 6.0  # stopped that long for a body that has not moved either: that one steps aside
     # A robot that settles holonomically (SettleConfig.translate) and has stayed within `circle_m` of its goal for
     # `circle_s` without its planner reporting arrival is circling it (the G1 at its planner speed turns on a ~1 m
     # radius and can orbit a goal it reaches at an angle): its planner is stopped and it settles from there.
@@ -183,6 +184,7 @@ class _Robot:
     hold_t: float | None = None  # since when it holds (mode "hold")
     guard_for: str | None = None  # stopped for this robot at close quarters
     guard_clear_t: float | None = None  # since when that has looked clear
+    guard_t: float = 0.0  # since when it has been stopped for guard_for
     vel: tuple[float, float] = (0.0, 0.0)  # world-frame velocity estimate from poses, m/s
     pose_t: float | None = None
     near_t: float | None = None  # since when it has been within circle_m of its goal
@@ -542,6 +544,23 @@ class Traffic:
             w.moved_t = l.moved_t = now
             why = "winner made no progress" if stalled else "no reachable pocket"
             self._event(now, f"deadlock ({why}): right of way swapped, {g.loser} over {g.winner} ({kind})")
+        for r in self.robots.values():  # close quarters that nobody resolves: the body in the way steps aside
+            o = self.robots.get(r.guard_for) if r.guard_for else None
+            if o is None or now - r.guard_t < cfg.guard_stuck_s or now - o.moved_t < cfg.guard_stuck_s:
+                continue
+            w, l = r, o
+            if o.guard_for == r.agent.id and o.agent.priority > r.agent.priority:
+                w, l = o, r
+            key = frozenset((w.agent.id, l.agent.id))
+            g = self.grants.get(key)
+            if g is not None and g.winner == w.agent.id and g.kind == "yield" and now - g.since < cfg.deadlock_s:
+                continue
+            self.grants[key] = Grant(winner=w.agent.id, loser=l.agent.id, kind="yield", since=now,
+                                     note="close quarters")
+            l.pocket_fails = 0
+            r.guard_t = o.guard_t = now
+            self._event(now, f"close quarters: {w.agent.id} and {l.agent.id} stuck {cfg.guard_stuck_s:.0f} s; "
+                        f"{l.agent.id} steps aside")
         for r in self.robots.values():
             kick_s = 0.5 * cfg.deadlock_s
             if r.mode == "go" and r.goal is not None and not self._loses(r.agent.id) \
@@ -620,8 +639,10 @@ class Traffic:
                         self._event(now, f"{rid}: {r.guard_for} clear ahead")
                 else:
                     r.guard_clear_t = None
-                if close is not None and close != r.guard_for and r.mode == "go":
-                    self._event(now, f"{rid}: {close} too close ahead, stops")
+                if close is not None and close != r.guard_for:
+                    r.guard_t = now
+                    if r.mode == "go":
+                        self._event(now, f"{rid}: {close} too close ahead, stops")
             r.guard_for = close
             hold = hold or close is not None
             if r.mode == "yield":  # released
@@ -777,10 +798,17 @@ class Traffic:
             # the way there is free and passes no body
             seg = np.linspace([x, y], [cx, cy], 6)
             ij = np.floor((seg - [ox, oy]) / res).astype(int)
-            if np.any(self._clear_m[ij[:, 1], ij[:, 0]] < r.agent.radius):
+            if np.any(self._clear_m[ij[1:, 1], ij[1:, 0]] < r.agent.radius):
                 continue
-            if any(o is not r and o.pose is not None and np.min(np.linalg.norm(seg - o.pose[:2], axis=1))
-                   < r.agent.radius + o.agent.radius + self.cfg.guard_margin_m for o in self.robots.values()):
+            blocked = False
+            for o in self.robots.values():  # never closer to a body than it is now, nor inside passing distance
+                if o is r or o.pose is None:
+                    continue
+                d = float(np.min(np.linalg.norm(seg[1:] - o.pose[:2], axis=1)))
+                if d < r.agent.radius + o.agent.radius + self.cfg.guard_margin_m \
+                        and d < math.dist((x, y), o.pose[:2]) - 0.02:
+                    blocked = True
+            if blocked:
                 continue
             d = float(np.min(np.linalg.norm(pw - [cx, cy], axis=1)))
             if d > best_d:
