@@ -47,8 +47,8 @@ class Rig:
     def run(self, seconds: float) -> None:
         for _ in range(round(seconds / CTRL_DT)):
             t = self.t
-            self.body.data.xfrc_applied[1] = [0, 0, 0, 40.0, 0, 0] if self.push and self.push[0] <= t < self.push[1] \
-                else 0.0
+            if self.push and abs(t - self.push[0]) < 1e-9:
+                self.world.push("go2", torque=(40.0, 0.0, 0.0), seconds=self.push[1] - self.push[0])
             n = self.world.ticks
             if self.sensing and n % 2 == 0:
                 self.dog.odom(t)

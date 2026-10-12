@@ -22,6 +22,7 @@ dimos-worlds-plant-render = "dimos_worlds.plant.pov_service:main"
 [project.entry-points."dimos.blueprints"]
 go2-warehouse = "dimos_worlds.warehouse.blueprint:go2_warehouse"
 warehouse-fleet = "dimos_worlds.fleet.blueprint:warehouse_fleet_blueprint"
+warehouse-fleet-4 = "dimos_worlds.fleet.blueprint:warehouse_fleet_4_blueprint"
 go2-lot-night = "dimos_worlds.lot.blueprint:go2_lot_night"
 lot-cctv = "dimos_worlds.lot.cctv:LotCctv"
 warehouse-arm = "dimos_worlds.arm.blueprint:warehouse_arm"

@@ -20,11 +20,15 @@ DimOS's Go2 connection keeps the Unitree lowstate (imu_state.rpy) to itself and 
 the `imu` input is an Imu message. A process that holds a lowstate stream can feed it with the `lowstate` RPC, or
 with `Watchdog.lowstate` in-process. In-process callers can also add callbacks to `self.watchdog.on_alert`.
 
+`guarded(blueprint, robot)` does that for a blueprint whose MovementManager drives one robot (go2-warehouse,
+go2-lot-night). The shipped blueprints all insert the watchdog unless DIMOS_WORLDS_SAFETY=0 (`safety_default`).
+
 Kinds, thresholds and the reset rules: safety.watchdog. The checks run at `rate_hz` on the wall clock.
 """
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 from typing import Any
@@ -45,6 +49,11 @@ from dimos.utils.logging_config import setup_logger
 from dimos_worlds.safety.watchdog import Alert, Watchdog, WatchdogConfig, roll_pitch
 
 logger = setup_logger()
+
+
+def safety_default() -> bool:
+    """Blueprints insert the watchdog by default; DIMOS_WORLDS_SAFETY=0 (or false/off/no) leaves it out."""
+    return os.environ.get("DIMOS_WORLDS_SAFETY", "1").strip().lower() not in ("0", "false", "off", "no")
 
 
 class SafetyWatchdogConfig(ModuleConfig):
@@ -95,7 +104,7 @@ class SafetyWatchdog(Module):
         sub(Disposable(self.imu.subscribe(self._on_imu)))
         sub(Disposable(self.odom.subscribe(self._on_odom)))
         sub(Disposable(self.safety_reset.subscribe(lambda m: self.reset() if m.data else None)))
-        threading.Thread(target=self._loop, name="safety-watchdog", daemon=True).start()
+        threading.Thread(target=self._watch, name="safety-watchdog", daemon=True).start()
         logger.info(f"safety watchdog up{' for ' + self.config.robot if self.config.robot else ''}")
 
     @rpc
@@ -141,7 +150,7 @@ class SafetyWatchdog(Module):
             self.watchdog.odom(self._clock(), (q.x, q.y, q.z, q.w))
 
     # ---- loop
-    def _loop(self) -> None:
+    def _watch(self) -> None:  # (not `_loop`: DimOS's Module keeps its event loop there)
         period = 1.0 / self.config.rate_hz
         while not self._stop.wait(period):
             try:
@@ -165,3 +174,17 @@ class SafetyWatchdog(Module):
         (logger.warning if a.latched or a.kind == "reset_refused" else logger.info)(f"safety: {who}{a.message}")
         row = a.to_dict() | ({"robot": self.config.robot} if self.config.robot else {})
         self.safety_alert.publish(String(json.dumps(row)))
+
+
+def guarded(blueprint: Any, robot: str = "", safety: bool | None = None) -> Any:
+    """`blueprint` with a SafetyWatchdog between its MovementManager's cmd_vel and the robot (cmd_vel_unsafe in
+    between). safety=None: safety_default()."""
+    from dimos.core.coordination.blueprints import autoconnect
+    from dimos.navigation.movement_manager.movement_manager import MovementManager
+
+    if not (safety_default() if safety is None else safety):
+        return blueprint
+    return autoconnect(blueprint, SafetyWatchdog.blueprint(robot=robot)).remappings([
+        (MovementManager, "cmd_vel", "cmd_vel_unsafe"),
+        (SafetyWatchdog, "cmd_vel_in", "cmd_vel_unsafe"),
+    ])

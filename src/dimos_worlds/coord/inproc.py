@@ -55,6 +55,7 @@ class Outcome:
     goals: dict[str, tuple[float, float, float]] = field(default_factory=dict)
     falls: dict[str, int] = field(default_factory=dict)
     min_gap_m: float = math.inf
+    min_gap_at: tuple[float, str, str] | None = None  # (seconds after start, robot, robot) of the closest approach
     events: list[str] = field(default_factory=list)
     elapsed_s: float = 0.0  # sim seconds (stepped) or wall seconds (realtime)
 
@@ -201,7 +202,10 @@ class InProcessFleet:
         ids = sorted(poses)
         for i, a in enumerate(ids):
             for b in ids[i + 1:]:
-                self.outcome.min_gap_m = min(self.outcome.min_gap_m, math.dist(poses[a][:2], poses[b][:2]))
+                d = math.dist(poses[a][:2], poses[b][:2])
+                if d < self.outcome.min_gap_m:
+                    self.outcome.min_gap_m = d
+                    self.outcome.min_gap_at = (self._clock() - self.t0, a, b)
 
     def _costmap_loop(self) -> None:
         while not self._stop.wait(0.5):

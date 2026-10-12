@@ -83,8 +83,11 @@ def test_crossing_robot_already_on_the_path_goes_first_other_holds_then_walks_on
     t.update_pose("b", 21.6, 3.0, 0.0, 1.0)
     t.on_goal_reached("b", True, 3.0)  # b parks at its goal, 0.6 m off a's line: still too close for a to pass
     out = t.step(3.1)
-    assert t.status()["grants"] == ["a>b:yield"]  # parked on a's path: b moves aside, a walks on
-    assert _of(out, Goal, "b") and _of(out, Goal, "a")
+    assert t.status()["grants"] == ["a>b:yield"]  # parked on a's path: b moves aside ...
+    assert _of(out, Goal, "b") and not _of(out, Goal, "a")  # ... a, 0.6 m from b's body, waits (close quarters)
+    t.update_pose("b", 21.6, 4.5, 0.0, 4.0)  # b in its pocket
+    out = [a for k in range(41, 70) for a in t.step(0.1 * k)]
+    assert _of(out, Goal, "a")  # a walks on once b has been clear guard_release_s
 
 
 def test_neither_on_the_others_path_first_to_arrive_goes() -> None:
@@ -116,7 +119,8 @@ def test_follower_keeps_its_distance() -> None:
     t.update_pose("b", 6.8, 3.0, 0.0, 1.0)
     assert _of(t.step(1.1), Stop, "b")  # too close behind: stops
     t.update_pose("a", 11.0, 3.0, 0.0, 2.0)
-    assert _of(t.step(2.1), Goal, "b")  # leader moved on: walks on
+    t.update_pose("b", 6.8, 3.0, 0.0, 2.0)
+    assert [a for k in range(21, 40) for a in t.step(0.1 * k) if isinstance(a, Goal) and a.robot == "b"]  # walks on
 
 
 def test_planner_giving_up_is_retried_without_anyone_resending() -> None:
@@ -232,3 +236,44 @@ def test_ring_of_four_each_bound_for_the_next_ones_spot_breaks_the_hold_cycle() 
         (x0, y0), (x1, y1) = corners[i], corners[(i + 1) % 4]
         seg = np.stack([np.linspace(x0, x1, 21), np.linspace(y0, y1, 21)], axis=1)
         assert np.min(np.linalg.norm(seg - [pocket.x, pocket.y], axis=1)) >= 0.3 + 0.3 + t.cfg.pocket_margin_m - 1e-9
+
+
+def test_settle_turns_in_place_first_when_far_off_heading() -> None:
+    """Walking sideways or backwards while turning hard, the G1 runs off forwards: turn first, then translate."""
+    sc = SettleConfig()
+    vx, vy, wz = settle_command(sc, (0.0, 0.0, 0.0), (0.3, 0.0, math.pi))
+    assert vx == vy == 0.0 and abs(wz) > 0.0
+    vx, vy, wz = settle_command(sc, (0.0, 0.0, math.pi - 0.2), (0.3, 0.0, math.pi))
+    assert math.hypot(vx, vy) > 0.0
+
+
+def test_close_quarters_winner_stops_short_of_a_body_that_did_not_move_aside() -> None:
+    """The right of way says a goes; b, parked on a's path, gets a pocket but has not moved: a stops short of it and
+    walks on only once b is clear."""
+    t = _traffic()
+    t.update_pose("a", 20.5, 1.0, math.pi / 2, 0.0)
+    t.update_pose("b", 20.5, 2.4, 0.0, 0.0)
+    t.request_goal("a", 20.5, 5.0, math.pi / 2, 0.0)
+    t.on_path("a", np.stack([np.full(41, 20.5), np.linspace(1.0, 5.0, 41)], axis=1), 0.0)
+    for k in range(1, 6):  # a walks north at 0.3 m/s toward b
+        t.update_pose("a", 20.5, 1.0 + 0.03 * k, math.pi / 2, 0.1 * k)
+        out = t.step(0.1 * k)
+    assert t.status()["grants"] == ["a>b:yield"]
+    assert t.status()["a"]["mode"] == "hold" and any("b too close ahead" in e for _, e in t.events)
+    t.update_pose("b", 21.4, 4.6, 0.0, 1.0)  # b in a pocket
+    out = [x for k in range(10, 40) for x in t.step(0.1 * k)]
+    assert _of(out, Goal, "a")
+
+
+def test_a_robot_circling_its_goal_settles_from_where_it_is() -> None:
+    t = _traffic(settle=True)
+    t.update_pose("a", 10.0, 3.0, 0.0, 0.0)
+    t.update_pose("b", 1.0, 1.0, 0.0, 0.0)
+    t.request_goal("a", 10.5, 3.0, 0.0, 0.0)
+    out = []
+    for k in range(1, 260):  # 0.5-0.9 m from the goal, round and round, for 26 s
+        a = 0.25 * k
+        t.update_pose("a", 10.5 + 0.7 * math.cos(a), 3.0 + 0.7 * math.sin(a), a + math.pi / 2, 0.1 * k)
+        out += t.step(0.1 * k)
+    assert any("settles from here" in e for _, e in t.events)
+    assert _of(out, Stop, "a") and _of(out, Velocity, "a")

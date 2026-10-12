@@ -8,6 +8,8 @@ goal is lost every time (verified on Ubuntu 22.04), on macOS sometimes. This wai
 same PoseStamped on the same transport. Prints what it sent; the planner logs `Got new goal` when it lands.
 
     dimos-worlds-send /arm_command 'String("conveyor pick_table")'   # any message, same syntax as dimos topic send
+    dimos-worlds-send /go2b/tele_cmd_vel 'Twist(Vector3(0.4, 0, 0), Vector3(0, 0, 0))' --every 0.1 --for 5
+                                                                     # a command stream, 10 Hz for 5 s (teleop)
 """
 
 from __future__ import annotations
@@ -49,13 +51,26 @@ def send_main(argv: list[str] | None = None) -> int:
     ap.add_argument("topic")
     ap.add_argument("message", help='e.g. \'String("conveyor pick_table")\'')
     ap.add_argument("--wait", type=float, default=3.0, help="seconds to wait for peer discovery (default 3)")
+    ap.add_argument("--every", type=float, default=0.0, help="send again every this many seconds (a stream)")
+    ap.add_argument("--for", dest="duration", type=float, default=0.0,
+                    help="with --every: stream this long (default: until interrupted)")
     a = ap.parse_args(argv)
     msg = eval(a.message, _build_eval_context())  # noqa: S307  (the user's own command line, as dimos topic send)
     transport = make_transport(a.topic, type(msg))
     time.sleep(a.wait)
-    transport.broadcast(None, msg)
-    time.sleep(1.0)
-    print(f"sent to {a.topic}: {getattr(msg, 'data', msg)}")
+    n = 0
+    t0 = time.monotonic()
+    try:
+        while True:
+            transport.broadcast(None, msg)
+            n += 1
+            if a.every <= 0 or (a.duration > 0 and time.monotonic() - t0 >= a.duration):
+                break
+            time.sleep(a.every)
+    except KeyboardInterrupt:
+        pass
+    time.sleep(1.0 if a.every <= 0 else 0.0)
+    print(f"sent to {a.topic}: {getattr(msg, 'data', msg)}" + (f" x{n}" if n > 1 else ""))
     return 0
 
 

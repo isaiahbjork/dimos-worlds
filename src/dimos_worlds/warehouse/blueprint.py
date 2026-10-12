@@ -17,17 +17,18 @@ from dimos.core.coordination.blueprints import autoconnect
 from dimos.mapping.costmapper import CostMapper
 from dimos.mapping.voxels.module import VoxelGridMapper
 
+from dimos_worlds.safety.module import guarded
 from dimos_worlds.warehouse.cell import LAYOUT
 from dimos_worlds.warehouse.go2 import WarehouseGo2Connection
 from dimos_worlds.warehouse.modules import WarehousePriorMap
 
 _x, _y, _yaw = LAYOUT["quadruped"]["home"]
 
-go2_warehouse = autoconnect(
+go2_warehouse = guarded(autoconnect(
     unitree_go2.disabled_modules(GO2Connection, VoxelGridMapper, CostMapper),
     WarehouseGo2Connection.blueprint(),
     WarehousePriorMap.blueprint(),
-).global_config(
+), robot="go2").global_config(
     simulation="mujoco",
     robot_model="unitree_go2",
     mujoco_start_pos=f"{_x}, {_y}",

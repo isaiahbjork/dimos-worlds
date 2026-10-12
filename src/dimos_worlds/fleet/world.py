@@ -181,6 +181,9 @@ class Body:
         self.mode = "walk"  # walk | down
         self.down_t = 0.0
         self.falls = 0
+        self.root = int(model.jnt_bodyid[0])  # the body on the free joint (trunk / pelvis)
+        self.push_wrench = np.zeros(6)  # external force and torque on the root body (world frame) ...
+        self.push_ticks = 0  # ... for this many more ticks
         self.place(spec.x, spec.y, spec.yaw)
 
     # ---- state
@@ -239,6 +242,8 @@ class Body:
             goal = self._tracked_goal() if (s.comp.track_velocity and self.route is None) else self.cmd.goal
             lim = np.array([s.acc_vx, s.acc_vx, s.acc_wz]) * CTRL_DT
             self.cmd.value[:] = self.cmd.value + np.clip(goal - self.cmd.value, -lim, lim)
+        self.data.xfrc_applied[self.root] = self.push_wrench if self.push_ticks > 0 else 0.0
+        self.push_ticks = max(0, self.push_ticks - 1)
         for _ in range(self.n_substeps):
             self.policy.get_control(self.model, self.data)
             mujoco.mj_step(self.model, self.data)
@@ -530,6 +535,18 @@ class SharedWorld:
                 body.route = None
             body.cmd.goal[:] = 0  # ramps down, like the robots' own stop
 
+    def push(self, robot: str, force: tuple[float, float, float] = (0.0, 0.0, 0.0),
+             torque: tuple[float, float, float] = (0.0, 0.0, 0.0), seconds: float = 0.3) -> None:
+        """A disturbance: force (N) and torque (N m), world frame, on the robot's trunk for `seconds` of sim time.
+        For fault drills (tip a robot over); logged, so a run with pushes replays."""
+        f = [float(v) for v in force]
+        tq = [float(v) for v in torque]
+        with self.lock:
+            body = self._body(robot)
+            self.record(robot, "push", force=f, torque=tq, seconds=float(seconds))
+            body.push_wrench[:] = f + tq
+            body.push_ticks = max(1, round(float(seconds) / CTRL_DT))
+
     def apply(self, cmd: dict[str, Any]) -> None:
         """Re-issue a logged command (replay)."""
         robot, op, a = cmd["robot"], cmd["op"], cmd.get("args", {})
@@ -539,6 +556,8 @@ class SharedWorld:
             self.walk_route(robot, [tuple(leg) for leg in a["legs"]], a["speed"])
         elif op == "stop":
             self.stop(robot)
+        elif op == "push":
+            self.push(robot, a["force"], a["torque"], a["seconds"])
         else:
             raise ValueError(f"unknown command {op!r}")
 

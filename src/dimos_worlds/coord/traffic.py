@@ -64,6 +64,9 @@ class SettleConfig:
     max_v: float = 0.15  # m/s
     max_wz: float = 0.35  # rad/s
     min_wz: float = 0.0  # smallest turn command that turns the body at all (0: none needed)
+    # Heading error above this: turn in place first, translate after. Walking sideways or backwards while turning
+    # hard, the G1 walks off forwards (up to 0.8 m/s, 1.6 m from its goal in a jittered ring run).
+    turn_first_rad: float = math.radians(30.0)
     hold_s: float = 0.6
     timeout_s: float = 20.0
 
@@ -94,7 +97,21 @@ class TrafficConfig:
     deadlock_s: float = 25.0
     cycle_s: float = 5.0  # every robot in a cycle of holds stopped (or stalled) this long: one of them steps aside
     progress_m: float = 0.3
-    arrive_m: float = 0.6  # a planner arrival this close to the goal counts (further: the goal is sent again)
+    arrive_m: float = 0.6
+    # Close quarters: a robot with a goal whose next `guard_ahead_m` of path, or where its current velocity takes it
+    # in `guard_ahead_s`, comes closer than radius + radius + `guard_margin_m` to another body, nearer than that body
+    # is now, stops until that clears by `guard_release_m`. Whatever the right of way says: a robot that should have
+    # moved aside but has not (no reachable pocket yet, a second yield), a body walking off its planned path.
+    guard_ahead_m: float = 0.8
+    guard_ahead_s: float = 1.5
+    guard_margin_m: float = 0.15
+    guard_release_m: float = 0.1
+    guard_release_s: float = 1.5  # ... and has stayed clear this long (a stop-and-go every second gets nowhere)
+    # A robot that settles holonomically (SettleConfig.translate) and has stayed within `circle_m` of its goal for
+    # `circle_s` without its planner reporting arrival is circling it (the G1 at its planner speed turns on a ~1 m
+    # radius and can orbit a goal it reaches at an angle): its planner is stopped and it settles from there.
+    circle_m: float = 1.0
+    circle_s: float = 20.0  # a planner arrival this close to the goal counts (further: the goal is sent again)
 
 
 @dataclass(frozen=True)
@@ -164,6 +181,11 @@ class _Robot:
     settle_ok_t: float | None = None
     returning: bool = False  # the goal is `home`, after a yield while parked
     hold_t: float | None = None  # since when it holds (mode "hold")
+    guard_for: str | None = None  # stopped for this robot at close quarters
+    guard_clear_t: float | None = None  # since when that has looked clear
+    vel: tuple[float, float] = (0.0, 0.0)  # world-frame velocity estimate from poses, m/s
+    pose_t: float | None = None
+    near_t: float | None = None  # since when it has been within circle_m of its goal
 
 
 def _resample(pts: np.ndarray, step: float = STEP_M) -> np.ndarray:
@@ -250,6 +272,11 @@ class Traffic:
 
     def update_pose(self, rid: str, x: float, y: float, yaw: float, now: float) -> None:
         r = self.robots[rid]
+        if r.pose is not None and r.pose_t is not None and now - r.pose_t > 1e-6:
+            dt = now - r.pose_t
+            a = min(1.0, dt / 0.3)  # low-pass over ~0.3 s: the gaits sway
+            r.vel = (r.vel[0] + a * ((x - r.pose[0]) / dt - r.vel[0]), r.vel[1] + a * ((y - r.pose[1]) / dt - r.vel[1]))
+        r.pose_t = now
         r.pose = (float(x), float(y), float(yaw))
         if r.moved_xy is None or math.hypot(x - r.moved_xy[0], y - r.moved_xy[1]) >= self.cfg.progress_m:
             r.moved_xy = (float(x), float(y))
@@ -263,6 +290,7 @@ class Traffic:
         r.intent = None
         r.retry_t = None
         r.moved_t = now
+        r.near_t = None
         self._event(now, f"{rid}: goal ({x:.2f}, {y:.2f}, {math.degrees(yaw):.0f} deg)")
         out: list[Action] = []
         if r.mode == "settle":
@@ -316,6 +344,8 @@ class Traffic:
         for r in self.robots.values():
             if r.mode == "settle":
                 out += self._settle(r, now)
+            else:
+                out += self._circling(r, now)
         self._maintain_grants(now)
         self._detect(now)
         self._cycles(now)
@@ -538,10 +568,24 @@ class Traffic:
                     r.mode = "yield"
                     r.pocket = None
                     r.pocket_fails = 0
+                w = self._pocket_taken(r, mine) if r.pocket is not None and not r.pocket_fails else None
+                if w is not None:
+                    pocket = self._find_pocket(r, w)
+                    if pocket is not None and math.dist(pocket[:2], r.pocket[:2]) > 0.3:
+                        self._event(now, f"{rid}: pocket ({r.pocket[0]:.2f}, {r.pocket[1]:.2f}) is on "
+                                    f"{w.agent.id}'s path; yields to it at ({pocket[0]:.2f}, {pocket[1]:.2f})")
+                        r.pocket = pocket
+                        out.append(Goal(rid, *pocket, reason=f"yield to {w.agent.id}"))
+                        r.last_cmd_t = now
                 if r.pocket is None or (r.retry_t is not None and now >= r.retry_t):
                     r.retry_t = None
                     w = self.robots[yield_to.winner]
                     pocket = self._find_pocket(r, w, skip=r.pocket if r.pocket_fails else None)
+                    if pocket is None:
+                        pocket = self._retreat(r, w)
+                        if pocket is not None:
+                            self._event(now, f"{rid}: no pocket from {yield_to.winner}; backs off to "
+                                        f"({pocket[0]:.2f}, {pocket[1]:.2f})")
                     if pocket is None:
                         if r.pocket is None:
                             out.append(Stop(rid, *r.pose, reason=f"no pocket from {yield_to.winner}"))
@@ -565,6 +609,21 @@ class Traffic:
                     hold = hold or ov.a_entry < cfg.stop_margin_m + cfg.release_m
                 else:
                     hold = hold or ov.a_entry < cfg.stop_margin_m
+            close = None
+            if r.mode in ("go", "hold") and r.goal is not None:
+                close = self._close_ahead(r, cfg.guard_release_m if r.guard_for else 0.0)
+                if close is None and r.guard_for is not None:
+                    r.guard_clear_t = r.guard_clear_t if r.guard_clear_t is not None else now
+                    if now - r.guard_clear_t < cfg.guard_release_s:
+                        close = r.guard_for
+                    else:
+                        self._event(now, f"{rid}: {r.guard_for} clear ahead")
+                else:
+                    r.guard_clear_t = None
+                if close is not None and close != r.guard_for and r.mode == "go":
+                    self._event(now, f"{rid}: {close} too close ahead, stops")
+            r.guard_for = close
+            hold = hold or close is not None
             if r.mode == "yield":  # released
                 r.pocket = None
                 if r.goal is None and r.home is not None:
@@ -591,6 +650,39 @@ class Traffic:
                 self._event(now, f"{rid}: goal sent again (retry)")
         return out
 
+    def _close_ahead(self, r: _Robot, extra: float) -> str | None:
+        """The robot r would walk into at close quarters (see TrafficConfig.guard_*), or None."""
+        assert r.pose is not None
+        cfg = self.cfg
+        pts, s = self._wanted(r)
+        x, y, _ = r.pose
+        k = np.linspace(0.25, 1.0, 4)[:, None] * cfg.guard_ahead_s
+        drift = np.array([[x, y]]) + k * np.array([r.vel])
+        ahead = np.concatenate([pts[(s > 0.15) & (s <= cfg.guard_ahead_m)], drift], axis=0)
+        for oid, o in sorted(self.robots.items()):
+            if o is r or o.pose is None:
+                continue
+            need = r.agent.radius + o.agent.radius + cfg.guard_margin_m + extra
+            here = math.hypot(o.pose[0] - x, o.pose[1] - y)
+            d = float(np.min(np.linalg.norm(ahead - np.array(o.pose[:2]), axis=1)))
+            if d < need and d < here - 0.05:
+                return oid
+        return None
+
+    def _pocket_taken(self, r: _Robot, grants: list[Grant]) -> _Robot | None:
+        """A robot r yields to whose remaining path comes within passing distance of r's pocket (r yields to two at
+        once: the pocket was found for the other one), or None."""
+        assert r.pocket is not None
+        for g in grants:
+            w = self.robots[g.winner]
+            if g.kind != "yield" or w.pose is None or not self._active(w):
+                continue
+            pw, _ = self._wanted(w)
+            need = r.agent.radius + w.agent.radius + self.cfg.pocket_margin_m - 0.1  # (pockets are found on a grid)
+            if float(np.min(np.linalg.norm(pw - np.array(r.pocket[:2]), axis=1))) < need:
+                return w
+        return None
+
     def _send_goal(self, r: _Robot, now: float, reason: str) -> Goal:
         assert r.goal is not None
         r.last_cmd_t = now
@@ -605,6 +697,22 @@ class Traffic:
             self._event(now, f"{r.agent.id}: planner arrived; settling")
             return []
         return self._finish(r, now)
+
+    def _circling(self, r: _Robot, now: float) -> list[Action]:
+        sc = r.agent.settle
+        if r.mode != "go" or r.goal is None or r.pose is None or sc is None or not sc.translate \
+                or self._loses(r.agent.id) or math.dist(r.pose[:2], r.goal[:2]) > self.cfg.circle_m:
+            r.near_t = None
+            return []
+        if r.near_t is None:
+            r.near_t = now
+        if now - r.near_t < self.cfg.circle_s:
+            return []
+        r.near_t = None
+        self._event(now, f"{r.agent.id}: within {self.cfg.circle_m:.1f} m of its goal for {self.cfg.circle_s:.0f} s "
+                    "without arriving; settles from here")
+        r.last_cmd_t = now
+        return [Stop(r.agent.id, *r.pose, reason="circling its goal"), *self._arrive(r, now)]
 
     def _finish(self, r: _Robot, now: float) -> list[Action]:
         rid = r.agent.id
@@ -649,6 +757,35 @@ class Traffic:
             if spot is not None:
                 return spot
         return self._pocket_search(r, w, skip, others, None)
+
+    def _retreat(self, r: _Robot, w: _Robot, step_m: float = 1.0) -> tuple[float, float, float] | None:
+        """No pocket: a free spot `step_m` from r, as far as possible from w's body and remaining path, that keeps
+        clear of every other body. Better than standing in the way."""
+        if self._grid is None or self._clear_m is None or r.pose is None or w.pose is None:
+            return None
+        res, (ox, oy) = self._res, self._origin
+        h, wd = self._grid.shape
+        pw, _ = self._wanted(w) if w.goal is not None else _remaining(None, w.pose[:2])
+        x, y = r.pose[:2]
+        here = float(np.min(np.linalg.norm(pw - [x, y], axis=1)))
+        best, best_d = None, here + 0.3  # only worth it if it gets well clear of w's way
+        for a in np.linspace(-math.pi, math.pi, 24, endpoint=False):
+            cx, cy = x + step_m * math.cos(a), y + step_m * math.sin(a)
+            i, j = int(math.floor((cx - ox) / res)), int(math.floor((cy - oy) / res))
+            if not (0 <= i < wd and 0 <= j < h) or self._clear_m[j, i] < r.agent.radius + self.cfg.pocket_wall_m:
+                continue
+            # the way there is free and passes no body
+            seg = np.linspace([x, y], [cx, cy], 6)
+            ij = np.floor((seg - [ox, oy]) / res).astype(int)
+            if np.any(self._clear_m[ij[:, 1], ij[:, 0]] < r.agent.radius):
+                continue
+            if any(o is not r and o.pose is not None and np.min(np.linalg.norm(seg - o.pose[:2], axis=1))
+                   < r.agent.radius + o.agent.radius + self.cfg.guard_margin_m for o in self.robots.values()):
+                continue
+            d = float(np.min(np.linalg.norm(pw - [cx, cy], axis=1)))
+            if d > best_d:
+                best, best_d = (cx, cy, r.pose[2]), d
+        return best
 
     def _pocket_search(self, r: _Robot, w: _Robot, skip: tuple[float, float, float] | None, others: list[_Robot],
                        avoid: np.ndarray | None) -> tuple[float, float, float] | None:
@@ -745,7 +882,7 @@ def settle_command(sc: SettleConfig, pose: tuple[float, float, float],
     if pos_ok and yaw_ok:
         return None
     vx = vy = wz = 0.0
-    if not pos_ok:
+    if not pos_ok and abs(eyaw) <= sc.turn_first_rad:
         c, s = math.cos(yaw), math.sin(yaw)
         ex, ey = c * dx + s * dy, -s * dx + c * dy
         scale = min(1.0, sc.max_v / max(sc.k_pos * dist, 1e-9))

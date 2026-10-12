@@ -4,6 +4,7 @@
     python -m dimos_worlds.coord.scenarios crossing --runs 5
     python -m dimos_worlds.coord.scenarios head-on --no-coord      # the same without coordination
     python -m dimos_worlds.coord.scenarios head-on --realtime      # planner threads on the wall clock, as live
+    python -m dimos_worlds.coord.scenarios ring --seeds 50 --jobs 4  # start poses jittered, seeds 0-49, 4 at a time
 
 Runs are stepped on sim time by default (coord.inproc): the same scenario gives the same result on any machine, and
 the timeout is in sim seconds. --realtime runs the live timing instead; its outcome depends on machine load.
@@ -26,13 +27,15 @@ convoy    aisle C-D (2.5 m, 19 m long), all three heading east into the dock: a 
 ring      four robots on the corners of a 2.4 m square on the open dock floor, each bound for the next one's corner
           (counter-clockwise). Every robot's goal is held by the next one, so pairwise right of way makes a cycle of
           holds; the coordinator breaks it (coord.traffic, hold cycle).
+mixed     the ring with two G1s and two Go2s, bodies alternating (Go2, G1, Go2, G1).
 """
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import logging
 import math
+import random
 import sys
 
 from dimos_worlds.fleet.robots import RobotSpec, g1, go2
@@ -78,7 +81,22 @@ SCENARIOS = {
             [(go2, {}), (g1, {}), (go2, {"robot_id": "go2b"}), (go2, {"robot_id": "go2c"})])),
         {rid: (*RING[(i + 1) % 4], math.pi / 2 * i) for i, rid in enumerate(("go2", "g1", "go2b", "go2c"))},
         timeout_s=240.0),
+    "mixed": Scenario(
+        "mixed",
+        tuple(f(*RING[i], math.pi / 2 * i, **kw) for i, (f, kw) in enumerate(
+            [(go2, {}), (g1, {}), (go2, {"robot_id": "go2b"}), (g1, {"robot_id": "g1b"})])),
+        {rid: (*RING[(i + 1) % 4], math.pi / 2 * i) for i, rid in enumerate(("go2", "g1", "go2b", "g1b"))},
+        timeout_s=300.0),
 }
+
+
+def jittered(sc: Scenario, seed: int, pos_m: float = 0.02, yaw_rad: float = 0.02) -> Scenario:
+    """The scenario with every start pose moved by up to `pos_m` in x and y and turned by up to `yaw_rad`, uniformly,
+    from `seed`. Goals stay put."""
+    rng = random.Random(seed)
+    specs = tuple(replace(s, x=s.x + rng.uniform(-pos_m, pos_m), y=s.y + rng.uniform(-pos_m, pos_m),
+                          yaw=s.yaw + rng.uniform(-yaw_rad, yaw_rad)) for s in sc.specs)
+    return replace(sc, name=f"{sc.name} seed {seed}", specs=specs)
 
 
 def run(sc: Scenario, *, coordinate: bool = True, verbose: bool = False, realtime: bool = False):  # -> Outcome
@@ -107,33 +125,64 @@ def passed(sc: Scenario, out, pos_tol_m: float = 0.5, yaw_tol_deg: float = 15.0)
             and not any(out.falls.values()) and out.min_gap_m >= sc.min_gap_m)
 
 
+def summary(sc: Scenario, out) -> str:  # noqa: ANN001
+    parts = []
+    for rid in sc.goals:
+        if rid in out.arrived:
+            dp, dyaw = out.errors(rid)
+            parts.append(f"{rid} arrived {out.arrived[rid]:.0f} s ({dp:.2f} m, {math.degrees(dyaw):.0f} deg)")
+        else:
+            x, y, _ = out.final[rid]
+            parts.append(f"{rid} NOT arrived (at {x:.1f}, {y:.1f})")
+    gap = f"min gap {out.min_gap_m:.2f} m"
+    if out.min_gap_at is not None:
+        t, a, b = out.min_gap_at
+        gap += f" ({a}-{b} at {t:.0f} s)"
+    return "; ".join(parts) + f"; {gap}; falls {out.falls}"
+
+
+def _one(job: tuple[str, int | None, bool, bool, bool]) -> tuple[str, bool, str, int, list[str]]:
+    name, seed, coordinate, realtime, verbose = job
+    logging.basicConfig(level=logging.WARNING)
+    sc = SCENARIOS[name] if seed is None else jittered(SCENARIOS[name], seed)
+    out = run(sc, coordinate=coordinate, realtime=realtime)
+    return sc.name, passed(sc, out), summary(sc, out), sum(out.falls.values()), out.events if verbose else []
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("scenario", choices=sorted(SCENARIOS))
-    ap.add_argument("--runs", type=int, default=1)
+    ap.add_argument("--runs", type=int, default=1, help="repeat the scenario as written")
+    ap.add_argument("--seeds", type=int, default=0, help="instead: this many runs with jittered start poses "
+                    "(up to 2 cm and 0.02 rad, seeds --seed-start, +1, ...)")
+    ap.add_argument("--seed-start", type=int, default=0)
+    ap.add_argument("--jobs", type=int, default=1, help="runs in parallel (processes)")
     ap.add_argument("--no-coord", action="store_true", help="planners only, no coordinator")
     ap.add_argument("--realtime", action="store_true", help="wall-clock planner threads (live timing)")
     ap.add_argument("-v", "--verbose", action="store_true", help="print the coordinator's events")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.WARNING)
-    sc = SCENARIOS[a.scenario]
-    ok = 0
-    for i in range(a.runs):
-        out = run(sc, coordinate=not a.no_coord, verbose=a.verbose, realtime=a.realtime)
-        good = passed(sc, out)
+    seeds: list[int | None] = list(range(a.seed_start, a.seed_start + a.seeds)) if a.seeds else [None] * a.runs
+    jobs = [(a.scenario, s, not a.no_coord, a.realtime, a.verbose) for s in seeds]
+    if a.jobs > 1:
+        import multiprocessing as mp
+
+        pool = mp.get_context("spawn").Pool(a.jobs)
+        results = pool.imap(_one, jobs)
+    else:
+        pool, results = None, map(_one, jobs)
+    ok = falls = 0
+    for i, (name, good, text, nfalls, events) in enumerate(results):
         ok += good
-        parts = []
-        for rid in sc.goals:
-            if rid in out.arrived:
-                dp, dyaw = out.errors(rid)
-                parts.append(f"{rid} arrived {out.arrived[rid]:.0f} s ({dp:.2f} m, {math.degrees(dyaw):.0f} deg)")
-            else:
-                x, y, _ = out.final[rid]
-                parts.append(f"{rid} NOT arrived (at {x:.1f}, {y:.1f})")
-        print(f"{sc.name} run {i + 1}: {'PASS' if good else 'FAIL'}  " + "; ".join(parts)
-              + f"; min gap {out.min_gap_m:.2f} m; falls {out.falls}", flush=True)
-    print(f"{sc.name}: {ok}/{a.runs} passed ({'coordinated' if not a.no_coord else 'no coordination'})")
-    return 0 if ok == a.runs else 1
+        falls += nfalls
+        for e in events:
+            print("   ", e)
+        print(f"{name} run {i + 1}: {'PASS' if good else 'FAIL'}  {text}", flush=True)
+    if pool is not None:
+        pool.close()
+    print(f"{a.scenario}: {ok}/{len(jobs)} passed, {falls} falls "
+          f"({'coordinated' if not a.no_coord else 'no coordination'})")
+    return 0 if ok == len(jobs) else 1
 
 
 if __name__ == "__main__":

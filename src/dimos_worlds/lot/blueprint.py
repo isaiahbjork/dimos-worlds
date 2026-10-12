@@ -25,6 +25,7 @@ from dimos.visualization.vis_module import vis_module
 from dimos_worlds.lot.connection import LotGo2Connection
 from dimos_worlds.lot.modules import LotEvents, LotPlaces, LotPriorMap
 from dimos_worlds.lot.places import HOME
+from dimos_worlds.safety.module import guarded
 
 
 def _vis():  # type: ignore[no-untyped-def]
@@ -33,7 +34,7 @@ def _vis():  # type: ignore[no-untyped-def]
     return vis_module(viewer_backend=global_config.viewer, rerun_config=rerun_config)
 
 
-go2_lot_night = autoconnect(
+go2_lot_night = guarded(autoconnect(
     _vis(),
     LotGo2Connection.blueprint(),
     LotPriorMap.blueprint(),
@@ -41,7 +42,7 @@ go2_lot_night = autoconnect(
     MovementManager.blueprint(),
     LotPlaces.blueprint(),
     LotEvents.blueprint(),
-).global_config(
+), robot="go2").global_config(
     n_workers=8,
     robot_model="unitree_go2",
     simulation="mujoco",  # DimOS's planner uses its sim thresholds (stuck = < 1 m in 8 s)

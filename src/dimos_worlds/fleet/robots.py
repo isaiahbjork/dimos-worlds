@@ -28,7 +28,9 @@ this sim, not on hardware.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field, replace
+import math
 from pathlib import Path
 from typing import Any
 
@@ -126,6 +128,24 @@ def warehouse_fleet(compensate: bool = True) -> tuple[RobotSpec, ...]:
     hx, hy, hyaw = LAYOUT["humanoid"]["home"]
     specs = (go2(qx, qy, qyaw), g1(hx, hy, hyaw))
     return specs if compensate else tuple(s.without_compensation() for s in specs)
+
+
+# Two more robots for the four-robot fleet, on the open dock floor (east end), facing west into the warehouse.
+DOCK_G1B = (27.2, 9.2, math.pi)
+DOCK_GO2B = (27.2, 6.8, math.pi)
+
+
+def warehouse_fleet_4(compensate: bool = True) -> tuple[RobotSpec, ...]:
+    """warehouse_fleet() plus a second Go2 (go2b) and a second G1 (g1b) on the dock floor. Priority in this order."""
+    specs = (*warehouse_fleet(True), go2(*DOCK_GO2B, robot_id="go2b"), g1(*DOCK_G1B, robot_id="g1b"))
+    return specs if compensate else tuple(s.without_compensation() for s in specs)
+
+
+# Fleets the blueprints run, by blueprint name.
+FLEETS: dict[str, Callable[[bool], tuple[RobotSpec, ...]]] = {
+    "warehouse-fleet": warehouse_fleet,
+    "warehouse-fleet-4": warehouse_fleet_4,
+}
 
 
 def dimos_mujoco_data() -> Path:

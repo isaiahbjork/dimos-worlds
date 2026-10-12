@@ -3,7 +3,14 @@
 WarehouseFleetSim runs one SharedWorld (Go2 + G1 in the warehouse) in its own thread and publishes one stream set
 per robot: `{id}_odom`, `{id}_color_image`, `{id}_camera_info`, `{id}_joint_state`, and takes `{id}_cmd_vel`. The
 blueprint renames them to `{id}/odom` and so on, the namespace each robot's planner listens on. It also publishes the
-scene's occupancy prior with the places' stay-outs as `global_costmap`.
+scene's occupancy prior with the places' stay-outs as `global_costmap`, and takes `sim_push` (String, JSON
+`{"robot": id, "force": [fx, fy, fz], "torque": [tx, ty, tz], "seconds": s}`): a disturbance on that robot's trunk,
+for fault drills.
+
+The module classes are built per fleet (`fleet_sim`, `robot_aware_costmaps`, coord.module.traffic_coordinator): one
+port set per robot id. `WarehouseFleetSim`, `RobotAwareCostmaps` and `FleetTraffic` are the two-robot fleet
+(robots.warehouse_fleet); `WarehouseFleet4Sim`, `RobotAwareCostmaps4` and `FleetTraffic4` the four-robot one
+(robots.warehouse_fleet_4).
 
 Every cmd_vel that changes what a robot is asked to do is logged with its tick, so the run can be re-executed
 bit for bit afterwards: `dimos-worlds-replay <run_log>`.
@@ -13,6 +20,8 @@ RobotAwareCostmaps turns `global_costmap` into one grid per robot with the OTHER
 """
 from __future__ import annotations
 
+import json
+import sys
 import threading
 import time
 from typing import Any
@@ -32,15 +41,20 @@ from dimos.msgs.nav_msgs.OccupancyGrid import OccupancyGrid
 from dimos.msgs.sensor_msgs.CameraInfo import CameraInfo
 from dimos.msgs.sensor_msgs.Image import Image, ImageFormat
 from dimos.msgs.sensor_msgs.JointState import JointState
+from dimos.msgs.std_msgs.String import String
 from dimos.utils.logging_config import setup_logger
 
 from dimos_worlds.fleet import costmap
 from dimos_worlds.fleet.places import load_places
-from dimos_worlds.fleet.robots import warehouse_fleet
+from dimos_worlds.fleet.robots import FLEETS, RobotSpec
 
 logger = setup_logger()
 
-ROBOT_IDS = ("go2", "g1")  # the ports below; robots.warehouse_fleet() must match
+ROBOT_IDS = ("go2", "g1")  # the two-robot fleet's ports; robots.warehouse_fleet() must match
+
+
+def fleet_specs(fleet: str, compensate: bool = True) -> tuple[RobotSpec, ...]:
+    return FLEETS[fleet](compensate)
 
 
 def _grid_msg(grid: np.ndarray, prior: costmap.Prior, ts: float) -> OccupancyGrid:
@@ -64,21 +78,12 @@ class WarehouseFleetSimConfig(ModuleConfig):
     compensate: bool = True
 
 
-class WarehouseFleetSim(Module):
-    """Go2 + G1 in one warehouse, each walking on its DimOS policy at its own physics step."""
+class _FleetSimBase(Module):
+    """Base: ports are added per robot id by fleet_sim()."""
 
     config: WarehouseFleetSimConfig
-    global_costmap: Out[OccupancyGrid]
-    go2_odom: Out[PoseStamped]
-    go2_color_image: Out[Image]
-    go2_camera_info: Out[CameraInfo]
-    go2_joint_state: Out[JointState]
-    go2_cmd_vel: In[Twist]
-    g1_odom: Out[PoseStamped]
-    g1_color_image: Out[Image]
-    g1_camera_info: Out[CameraInfo]
-    g1_joint_state: Out[JointState]
-    g1_cmd_vel: In[Twist]
+    ROBOT_IDS: tuple[str, ...] = ()
+    FLEET: str = ""
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -96,18 +101,19 @@ class WarehouseFleetSim(Module):
         from dimos_worlds.replay.log import RunLog
         from dimos_worlds.warehouse.scene import PLACES_JSON
 
-        specs = warehouse_fleet(self.config.compensate)
-        if tuple(s.id for s in specs) != ROBOT_IDS:
-            raise RuntimeError(f"robots {[s.id for s in specs]} do not match this module's ports {ROBOT_IDS}")
+        specs = fleet_specs(self.FLEET, self.config.compensate)
+        if tuple(s.id for s in specs) != self.ROBOT_IDS:
+            raise RuntimeError(f"robots {[s.id for s in specs]} do not match this module's ports {self.ROBOT_IDS}")
         self._world = warehouse_world(specs, run_log=RunLog(self.config.run_log), speed=self.config.speed)
         if self.config.run_log:
             logger.info(f"shared world run log: {self.config.run_log} (dimos-worlds-replay checks it)")
         any_model = next(iter(self._world.bodies.values())).model
         self._prior = costmap.prior_from_model(any_model)
         self._places = load_places(PLACES_JSON)
-        for rid in ROBOT_IDS:
+        for rid in self.ROBOT_IDS:
             port = getattr(self, f"{rid}_cmd_vel")
             self.register_disposable(Disposable(port.subscribe(lambda msg, rid=rid: self._on_cmd_vel(rid, msg))))
+        self.register_disposable(Disposable(self.sim_push.subscribe(self._on_push)))
         self._world.on_tick.append(self._on_tick)
         self._world.start()
         self._costmap_thread = threading.Thread(target=self._costmap_loop, name="fleet-costmap", daemon=True)
@@ -126,12 +132,22 @@ class WarehouseFleetSim(Module):
         if self._world is not None:
             self._world.set_velocity(robot_id, twist.linear.x, twist.linear.y, twist.angular.z)
 
+    def _on_push(self, msg: String) -> None:
+        try:
+            d = json.loads(msg.data)
+            self._world.push(d["robot"], d.get("force", (0.0, 0.0, 0.0)), d.get("torque", (0.0, 0.0, 0.0)),
+                             float(d.get("seconds", 0.3)))
+        except Exception as e:  # a bad message must not take the sim down
+            logger.warning(f"sim_push ignored ({e}): {msg.data!r}")
+            return
+        logger.warning(f"sim_push: {d}")
+
     # ---- publishing (world thread, after each tick, outside the world lock; reads state only)
     def _on_tick(self, world: Any) -> None:
         t = world.ticks
         ts = time.time()
         if t % self.config.odom_every_ticks == 0:
-            for rid in ROBOT_IDS:
+            for rid in self.ROBOT_IDS:
                 d = world.bodies[rid].data
                 getattr(self, f"{rid}_odom").publish(PoseStamped(
                     ts=ts, frame_id="world",
@@ -139,7 +155,7 @@ class WarehouseFleetSim(Module):
                     orientation=Quaternion(float(d.qpos[4]), float(d.qpos[5]), float(d.qpos[6]), float(d.qpos[3])),
                 ))
         if t % self.config.joints_every_ticks == 0:
-            for rid in ROBOT_IDS:
+            for rid in self.ROBOT_IDS:
                 body = world.bodies[rid]
                 m, d = body.model, body.data
                 names = [m.joint(j).name for j in range(1, m.njnt)]
@@ -153,10 +169,10 @@ class WarehouseFleetSim(Module):
         import mujoco
 
         world = self._world
-        scratch = {rid: mujoco.MjData(world.bodies[rid].model) for rid in ROBOT_IDS}
+        scratch = {rid: mujoco.MjData(world.bodies[rid].model) for rid in self.ROBOT_IDS}
         period = 1.0 / self.config.camera_hz
         while not self._stop.wait(period):
-            for rid in ROBOT_IDS:
+            for rid in self.ROBOT_IDS:
                 world.snapshot(rid, scratch[rid])
                 if not self._publish_camera(world, rid, scratch[rid], time.time()):
                     return
@@ -200,15 +216,13 @@ class RobotAwareCostmapsConfig(ModuleConfig):
     near_m: float = 3.0  # paint the other robot only within this distance (see costmap.robot_masks)
 
 
-class RobotAwareCostmaps(Module):
-    """global_costmap + the OTHER robot's footprint -> go2_costmap / g1_costmap."""
+class _RobotAwareCostmapsBase(Module):
+    """global_costmap + the OTHER robots' footprints -> {id}_costmap, per robot. Ports added by
+    robot_aware_costmaps()."""
 
     config: RobotAwareCostmapsConfig
-    global_costmap: In[OccupancyGrid]
-    go2_odom: In[PoseStamped]
-    g1_odom: In[PoseStamped]
-    go2_costmap: Out[OccupancyGrid]
-    g1_costmap: Out[OccupancyGrid]
+    ROBOT_IDS: tuple[str, ...] = ()
+    FLEET: str = ""
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -217,13 +231,13 @@ class RobotAwareCostmaps(Module):
         self._base: OccupancyGrid | None = None
         self._poses: dict[str, tuple[float, float]] = {}
         self._sent: dict[str, tuple[float, float]] = {}
-        self._radii = {s.id: s.body_radius for s in warehouse_fleet()}
+        self._radii = {s.id: s.body_radius for s in fleet_specs(self.FLEET)}
 
     @rpc
     def start(self) -> None:
         super().start()
         self.register_disposable(Disposable(self.global_costmap.subscribe(self._on_costmap)))
-        for rid in ROBOT_IDS:
+        for rid in self.ROBOT_IDS:
             port = getattr(self, f"{rid}_odom")
             self.register_disposable(Disposable(port.subscribe(lambda msg, rid=rid: self._on_odom(rid, msg))))
         threading.Thread(target=self._watch, name="robot-aware-costmaps", daemon=True).start()
@@ -261,22 +275,60 @@ class RobotAwareCostmaps(Module):
                               origin_y=float(base.origin.position.y), resolution=float(base.resolution))
         masks = costmap.robot_masks(prior, [], poses, self._radii, pad_m=self.config.pad_m,
                                     near_m=self.config.near_m)
-        for rid in ROBOT_IDS:
+        for rid in self.ROBOT_IDS:
             getattr(self, f"{rid}_costmap").publish(_grid_msg(masks[rid], prior, base.ts))
         with self._lock:
             self._sent = poses
 
 
-# The traffic coordinator for this fleet: between goals and the robots' planners (coord.traffic has the rules).
+def _module_class(base: type[Module], ann: dict[str, Any], name: str, ids: tuple[str, ...], fleet: str,
+                  module: str | None, doc: str) -> type[Module]:
+    mod = module or sys._getframe(2).f_globals.get("__name__", __name__)  # noqa: SLF001
+    ns = {"__annotations__": ann, "__module__": mod, "__qualname__": name, "ROBOT_IDS": tuple(ids), "FLEET": fleet,
+          "__doc__": doc}
+    return type(name, (base,), ns)
+
+
+def fleet_sim(fleet: str, name: str, module: str | None = None) -> type[Module]:
+    """The shared-world sim module for robots.FLEETS[fleet], one port set per robot. Assign it at module level under
+    `name` (DimOS workers import it by name)."""
+    ids = tuple(s.id for s in fleet_specs(fleet))
+    ann: dict[str, Any] = {"config": WarehouseFleetSimConfig, "global_costmap": Out[OccupancyGrid],
+                           "sim_push": In[String]}
+    for rid in ids:
+        ann |= {f"{rid}_odom": Out[PoseStamped], f"{rid}_color_image": Out[Image],
+                f"{rid}_camera_info": Out[CameraInfo], f"{rid}_joint_state": Out[JointState],
+                f"{rid}_cmd_vel": In[Twist]}
+    return _module_class(_FleetSimBase, ann, name, ids, fleet, module,
+                         f"{', '.join(ids)} in one warehouse, each walking on its DimOS policy at its own physics step.")
+
+
+def robot_aware_costmaps(fleet: str, name: str, module: str | None = None) -> type[Module]:
+    """RobotAwareCostmaps for robots.FLEETS[fleet]. Assign it at module level under `name`."""
+    ids = tuple(s.id for s in fleet_specs(fleet))
+    ann: dict[str, Any] = {"config": RobotAwareCostmapsConfig, "global_costmap": In[OccupancyGrid]}
+    for rid in ids:
+        ann |= {f"{rid}_odom": In[PoseStamped], f"{rid}_costmap": Out[OccupancyGrid]}
+    return _module_class(_RobotAwareCostmapsBase, ann, name, ids, fleet, module,
+                         f"global_costmap + the other robots' footprints -> {', '.join(r + '_costmap' for r in ids)}.")
+
+
+WarehouseFleetSim = fleet_sim("warehouse-fleet", "WarehouseFleetSim")
+RobotAwareCostmaps = robot_aware_costmaps("warehouse-fleet", "RobotAwareCostmaps")
+WarehouseFleet4Sim = fleet_sim("warehouse-fleet-4", "WarehouseFleet4Sim")
+RobotAwareCostmaps4 = robot_aware_costmaps("warehouse-fleet-4", "RobotAwareCostmaps4")
+
+# The traffic coordinator for each fleet: between goals and the robots' planners (coord.traffic has the rules).
 from dimos_worlds.coord.module import traffic_coordinator  # noqa: E402
 
 FleetTraffic = traffic_coordinator(ROBOT_IDS, "FleetTraffic")
+FleetTraffic4 = traffic_coordinator(tuple(s.id for s in fleet_specs("warehouse-fleet-4")), "FleetTraffic4")
 
 
-def fleet_agents(compensate: bool = True) -> list[dict[str, Any]]:
-    """FleetTraffic's `agents` config for warehouse_fleet()."""
+def fleet_agents(compensate: bool = True, fleet: str = "warehouse-fleet") -> list[dict[str, Any]]:
+    """A traffic coordinator's `agents` config for robots.FLEETS[fleet]."""
     from dataclasses import asdict
 
     from dimos_worlds.coord.settle import agents_for
 
-    return [asdict(a) for a in agents_for(warehouse_fleet(compensate))]
+    return [asdict(a) for a in agents_for(fleet_specs(fleet, compensate))]
