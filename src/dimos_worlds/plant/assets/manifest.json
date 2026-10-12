@@ -1,0 +1,156 @@
+{
+  "assets": [
+    {
+      "id": "concrete_floor_02",
+      "name": "Concrete Floor 02",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/concrete_floor_02",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "2k",
+      "use": "process-area slab"
+    },
+    {
+      "id": "gravel_concrete_03",
+      "name": "Gravel Concrete 03",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/gravel_concrete_03",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Charlotte Baglioni",
+      "resolution": "1k",
+      "use": "yard outside the slab"
+    },
+    {
+      "id": "painted_concrete",
+      "name": "Painted Concrete",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/painted_concrete",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Dario Barresi, Dimitrios Savva",
+      "resolution": "1k",
+      "use": "control room walls"
+    },
+    {
+      "id": "concrete_wall_008",
+      "name": "Concrete Wall 008",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/concrete_wall_008",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Dario Barresi, Charlotte Baglioni",
+      "resolution": "1k",
+      "use": "tank bund wall, plinths"
+    },
+    {
+      "id": "corrugated_iron",
+      "name": "Corrugated Iron",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/corrugated_iron",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Jenelle van Heerden, Dimitrios Savva",
+      "resolution": "1k",
+      "use": "motor shelter roof, control room roof"
+    },
+    {
+      "id": "green_metal_rust",
+      "name": "Green Metal Rust",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/green_metal_rust",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "1k",
+      "use": "tank shells"
+    },
+    {
+      "id": "blue_metal_plate",
+      "name": "Blue Metal Plate",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/blue_metal_plate",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "1k",
+      "use": "pump and motor casings"
+    },
+    {
+      "id": "rusty_metal_02",
+      "name": "Rusty Metal 02",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/rusty_metal_02",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "1k",
+      "use": "pipe rack steel"
+    },
+    {
+      "id": "metal_plate",
+      "name": "Metal Plate",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/metal_plate",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel",
+      "resolution": "1k",
+      "use": "pipes, valve bodies"
+    },
+    {
+      "id": "metal_grate_rusty",
+      "name": "Metal Grate Rusty",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/metal_grate_rusty",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Rob Tuytel, Dimitrios Savva",
+      "resolution": "1k",
+      "use": "grating on the pipe rack and stair treads"
+    },
+    {
+      "id": "painted_metal_shutter",
+      "name": "Painted Metal Shutter",
+      "kind": "texture",
+      "source": "https://polyhaven.com/a/painted_metal_shutter",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Dario Barresi, Rico Cilliers, Charlotte Baglioni",
+      "resolution": "1k",
+      "use": "control room door"
+    },
+    {
+      "id": "kloofendal_overcast_puresky",
+      "name": "Kloofendal Overcast (Pure Sky)",
+      "kind": "hdri",
+      "source": "https://polyhaven.com/a/kloofendal_overcast_puresky",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Greg Zaal",
+      "resolution": "1k",
+      "use": "day sky"
+    },
+    {
+      "id": "kloppenheim_02_puresky",
+      "name": "Kloppenheim 02 (Pure Sky)",
+      "kind": "hdri",
+      "source": "https://polyhaven.com/a/kloppenheim_02_puresky",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "author": "Greg Zaal, Jarod Guest",
+      "resolution": "1k",
+      "use": "night sky"
+    },
+    {
+      "id": "procedural",
+      "name": "Procedural geometry",
+      "kind": "procedural",
+      "source": "dimos_worlds/plant/render/",
+      "license": "Apache-2.0 (this repository)",
+      "author": "this repo",
+      "use": "pumps, motors, tanks, pipe rack, pipes, valves, gauges (faces drawn here), control room, stairs, lights, walkway paint, signage"
+    }
+  ]
+}
