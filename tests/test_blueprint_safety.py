@@ -45,12 +45,14 @@ def test_safety_default_reads_the_environment(monkeypatch: pytest.MonkeyPatch) -
         assert not safety_default()
 
 
-@pytest.mark.parametrize("name", ["go2_warehouse", "go2_lot_night"])
+@pytest.mark.parametrize("name", ["go2_warehouse", "go2_lot_night", "go2_plant"])
 def test_go2_blueprints_route_commands_through_the_watchdog(name: str) -> None:
     if name == "go2_warehouse":
         from dimos_worlds.warehouse.blueprint import go2_warehouse as bp
-    else:
+    elif name == "go2_lot_night":
         from dimos_worlds.lot.blueprint import go2_lot_night as bp
+    else:
+        from dimos_worlds.plant.blueprint import go2_plant as bp
     routes = _cmd_routes(bp)
     assert [a for a in bp.blueprints if a.module.__name__ == "SafetyWatchdog"]
     assert routes[("movementmanager", "cmd_vel")] == routes[("safetywatchdog", "cmd_vel_in")] == "cmd_vel_unsafe"

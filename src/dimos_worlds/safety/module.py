@@ -20,7 +20,7 @@ DimOS's Go2 connection keeps the Unitree lowstate (imu_state.rpy) to itself and 
 the `imu` input is an Imu message. A process that holds a lowstate stream can feed it with the `lowstate` RPC, or
 with `Watchdog.lowstate` in-process. In-process callers can also add callbacks to `self.watchdog.on_alert`.
 
-`guarded(blueprint, robot)` does that for a blueprint whose MovementManager drives one robot (go2-warehouse,
+`guarded(blueprint, robot)` does that for a blueprint whose MovementManager drives one robot (go2-warehouse, go2-plant,
 go2-lot-night). The shipped blueprints all insert the watchdog unless DIMOS_WORLDS_SAFETY=0 (`safety_default`).
 
 Kinds, thresholds and the reset rules: safety.watchdog. The checks run at `rate_hz` on the wall clock.

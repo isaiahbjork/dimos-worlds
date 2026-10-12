@@ -21,15 +21,16 @@ from dimos.robot.unitree.go2.connection import GO2Connection
 from dimos_worlds.plant.go2 import PlantGo2Connection
 from dimos_worlds.plant.go2_scene import HOME
 from dimos_worlds.plant.modules import PlantPlaces, PlantPriorMap
+from dimos_worlds.safety.module import guarded
 
 _x, _y = HOME["pose"]["x"], HOME["pose"]["y"]
 
-go2_plant = autoconnect(
+go2_plant = guarded(autoconnect(
     unitree_go2.disabled_modules(GO2Connection, VoxelGridMapper, CostMapper),
     PlantGo2Connection.blueprint(),
     PlantPriorMap.blueprint(),
     PlantPlaces.blueprint(),
-).global_config(
+), robot="go2").global_config(
     simulation="mujoco",
     robot_model="unitree_go2",
     mujoco_start_pos=f"{_x}, {_y}",
