@@ -245,6 +245,8 @@ The IK is positional (tool tip position, tool pointing straight down at a fixed 
 
 ## Drone dock
 
+![Dock 3-class station closed, open with the M4D-class quadcopter on the pad, and the quadcopter lifting off. MuJoCo render](docs/media/dock-station.jpg)
+
 `dimos_worlds.dock` is a drone docking station and its quadcopter in MuJoCo: generic models (not DJI products, not endorsed by DJI, no logos or marks) built to the dimensions DJI publishes for its Dock 3 and Matrice 4D. Every number in `dock/spec.json` carries its source (a DJI spec page or manual, a measurement on DJI's dimensioned drawings, or an estimate marked UNVERIFIED); the source URLs are in [`dock/README.md`](src/dimos_worlds/dock/README.md#sources). No mesh file is committed: `shapes.py` builds every mesh with manifold3d on first use.
 
 ```
