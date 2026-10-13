@@ -1,0 +1,9 @@
+assets/
+MUJOCO_LOG.TXT
+*.glb
+*.stl
+*.obj
+*.npz
+*.usdz
+*.step
+*.stp

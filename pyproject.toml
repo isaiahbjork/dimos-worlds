@@ -1,12 +1,13 @@
 [project]
 name = "dimos-worlds"
 version = "0.1.0"
-description = "Sim worlds, a shared-world multi-robot sim and deterministic replay for DimOS."
+description = "Sim worlds, a shared-world multi-robot sim, a drone dock and deterministic replay for DimOS."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.12,<3.13"
 # cpu: onnxruntime, which DimOS's walking policies (and the shared-world fleet sim) run on
-dependencies = ["dimos[sim,unitree,cpu]==0.0.14", "numpy", "pillow"]
+# manifold3d: the drone dock's meshes are generated from its spec on first use (dimos_worlds.dock)
+dependencies = ["dimos[sim,unitree,cpu]==0.0.14", "numpy", "pillow", "manifold3d>=3.0"]
 
 [project.optional-dependencies]
 render = []
