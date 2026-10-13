@@ -7,6 +7,7 @@ Sim worlds for [DimOS](https://github.com/dimensionalOS/dimos), shipped as DimOS
 - **Shared-world fleet.** A Go2 and a G1 (or two of each) in one MuJoCo world, each on its own policy timestep, each with its own DimOS planner, and costmaps that show each robot the other.
 - **Navigation-level coordination.** A DimOS module between goals and the planners: right of way from the planned paths, hold short of a shared stretch, yield to a pocket in head-on meetings, automatic retries, deadlock swap, and settling at the goal pose. No goal resends by hand.
 - **Demo plant.** 56 x 36 m process plant (control room, three pumps, compressor, tank bund, pipe rack) with 7 analog gauges, motors, valves and drip trays whose readings come from scripted events (`gauge_high`, `gauge_low`, `motor_hot`, `valve_wrong`, `leak`), a known-occupancy prior map, and a Blender render service for photoreal frames from any pose.
+- **Drone dock.** A Dock 3-class docking station (two covers, each on a linear actuator modelled as a closed chain) and the M4D-class quadcopter that lives in it, built to DJI's published dimensions as generated meshes and a MuJoCo model; attachable into any MuJoCo world (an example puts it on the night lot's office roof).
 - **Arm cell (optional).** A KUKA iiwa 14 on the warehouse pedestal, positional IK pick and place of a tote, as its own DimOS module.
 - **Safety watchdog.** A DimOS module between a robot's commands and the robot: stops and latches on a fall or tilt, a lost command link, or stale odometry/IMU, and stays stopped until an explicit reset.
 - **Deterministic replay.** A command log plus periodic state hashes. A sim run re-executes bit-identically.
@@ -242,6 +243,26 @@ dimos topic echo /arm_status String     # above conveyor ... gripped; lifting ..
 
 The IK is positional (tool tip position, tool pointing straight down at a fixed heading, damped least squares from a few starts), the motion is minimum-jerk between IK solutions, tracked by the model's own joint servos with gravity compensation. It publishes `arm_joint_state` and `tote_pose`.
 
+## Drone dock
+
+`dimos_worlds.dock` is a drone docking station and its quadcopter in MuJoCo: generic models (not DJI products, not endorsed by DJI, no logos or marks) built to the dimensions DJI publishes for its Dock 3 and Matrice 4D. Every number in `dock/spec.json` carries its source (a DJI spec page or manual, a measurement on DJI's dimensioned drawings, or an estimate marked UNVERIFIED); the source URLs are in [`dock/README.md`](src/dimos_worlds/dock/README.md#sources). No mesh file is committed: `shapes.py` builds every mesh with manifold3d on first use.
+
+```
+python -m dimos_worlds.dock.check                     # envelopes vs spec, cover timing, launch/land, clearances (JSON, exit 1 on failure)
+python -m dimos_worlds.dock.preview --out dock.jpg    # preview sheet: closed / half / open, overview + the three cameras
+python -m dimos_worlds.dock.lot_example               # on the night lot's office roof: open, fly over row D, land, close
+```
+
+```python
+from dimos_worlds.dock.sim import DockSim
+sim = DockSim()
+sim.open(); sim.run_until_idle()     # covers 0 -> 90 degrees in the spec's 5 s
+sim.takeoff(3.0); sim.land(); sim.close(); sim.run_until_idle()
+jpeg = sim.feed_jpeg("dock_internal")   # also dock_external (fisheye), drone_wide
+```
+
+`fixture.attach_dock(spec, pos, yaw_deg, prefix)` puts the station and quadcopter into any `MjSpec` (bodies, joints, cameras renamed with `prefix`); `DockSim.from_model(model, prefix)` drives it there. Closing is refused while the quadcopter is in the cover sweep. The quadcopter is held by a force/torque controller (it launches and lands with real contacts; it is not a flight-dynamics model). The dock is not in a DimOS blueprint yet: no robot commands go through it. Measured on macOS arm64 (`python -m dimos_worlds.dock.check`): closed envelope within 3 mm of DJI's 640 x 745 x 770 mm (L x W x H, gauge and RTK module included), covers open and close in 5.02 s, landing 0.5 mm off the pad centre, 30 mm between the parked quadcopter and the closed covers. Open length is 1736 mm against DJI's 1760 (DJI's own drawings disagree there by 12-19 mm), and the 5 s cover travel is an estimate: DJI publishes none.
+
 ## Replay
 
 `warehouse-fleet` writes `warehouse-fleet-run.jsonl` in the working directory: a header (scene sha256, robot specs, versions), every command with the tick it landed on, and a state hash every 250 ticks (5 s of sim time).
@@ -303,6 +324,7 @@ Assets are fetched at build time into `*/assets/cache/`, never committed. `downl
 - **Plant gauge rounds assume a PTZ head.** The camera is 0.32 m up on an assumed pan-tilt-zoom payload (tilt to 70 degrees, optical zoom to 4x), UNVERIFIED on hardware; `--stock-camera` uses the Go2's own camera (body pitch, digital zoom). Pan, tilt and the last turn toward a dial are render-only: the sim dog does not pitch and does not walk the final yaw. DimOS's planner stops within about 0.25 m of a goal, so moves shorter than 1 m are overshot by 0.25 m. Rendered frames are not camera captures.
 - **The gauge reader needs OpenCV 5 with contrib.** DimOS 0.0.14 installs `opencv-contrib-python` 4.x (it pins `<5`); gauge-rounds needs OpenCV 5.x with the contrib modules. Having both installed works (cv2 5.0.0 resolved to the contrib build in our run), but pip can leave mixed versions; check `python -c "import cv2; print(cv2.__version__); cv2.ximgproc"`.
 - **The plant has run on Linux only.** `go2-plant`, the render service and the gauge loop have run on Ubuntu 22.04 x86_64 (RTX 3090, Cycles CUDA); on macOS only `tests/test_plant.py` has run.
+- **Drone dock: kinematics and contacts, not aerodynamics.** Each cover swings on one fitted hinge (end poses match DJI's drawings, the path between is approximate). The cover travel time and several hidden depths are estimates (UNVERIFIED, labelled in `dock/spec.json`). Only `tests/test_dock.py` and the lot-roof example have run (macOS arm64); the dock has no DimOS module.
 - **MuJoCo visuals are boxes with flat lighting.** Fine for pipelines and change detection, not for judging what a real night camera sees.
 - **Lot CCTV frames are rendered, not recorded.** Camera model parameters are typical datasheet values, UNVERIFIED against any specific camera.
 
