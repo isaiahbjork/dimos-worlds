@@ -4,6 +4,7 @@ under the closed covers, launch and landing, and the lot-roof example."""
 from __future__ import annotations
 
 import math
+import os
 import re
 
 import mujoco
@@ -152,6 +153,18 @@ def test_check_report_passes() -> None:
     assert out["drone_contacts_off_pad"] == []
 
 
+def _gl_available() -> bool:
+    if os.environ.get("DIMOS_WORLDS_NO_GL") == "1":
+        return False
+    try:
+        r = mujoco.Renderer(mujoco.MjModel.from_xml_string("<mujoco/>"), 8, 8)
+        r.close()
+        return True
+    except Exception:
+        return False
+
+
+@pytest.mark.skipif(not _gl_available(), reason="no OpenGL context (set MUJOCO_GL=egl or osmesa)")
 def test_feeds_render(sim: DockSim) -> None:
     for feed in FEEDS:
         img = sim.render(feed, 160, 90)
