@@ -1,6 +1,7 @@
 """The safety watchdog (safety.watchdog) as a DimOS module, for one robot.
 
-    in   cmd_vel_in      Twist          the commands meant for the robot (from MovementManager, teleop, ...)
+    in   cmd_vel_in      Twist          the commands meant for the robot (from MovementManager, teleop, ...); linear.z
+                                    (a drone's climb rate) passes through too, and is zeroed with the rest
     in   imu             Imu            attitude (orientation); optional, odometry orientation is used without it
     in   odom            PoseStamped    freshness, and attitude while no IMU message has been seen
     in   safety_reset    Bool           True asks for a reset (same as the `reset` RPC)
@@ -135,8 +136,10 @@ class SafetyWatchdog(Module):
     # ---- inputs
     def _on_cmd(self, msg: Twist) -> None:
         with self._lock:
-            vx, vy, wz = self.watchdog.command(msg.linear.x, msg.linear.y, msg.angular.z, self._clock())
-        self.cmd_vel.publish(Twist(linear=Vector3(vx, vy, 0.0), angular=Vector3(0.0, 0.0, wz)))
+            vx, vy, wz = self.watchdog.command(msg.linear.x, msg.linear.y, msg.angular.z, self._clock(),
+                                               vz=msg.linear.z)
+            vz = self.watchdog.vz_out()
+        self.cmd_vel.publish(Twist(linear=Vector3(vx, vy, vz), angular=Vector3(0.0, 0.0, wz)))
 
     def _on_imu(self, msg: Imu) -> None:
         q = msg.orientation

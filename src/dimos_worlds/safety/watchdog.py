@@ -88,6 +88,7 @@ class Watchdog:
         self._odom_t: float | None = None
         self._cmd_t: float | None = None
         self._cmd: tuple[float, float, float] = ZERO
+        self._vz = 0.0
         self._tilt_since: float | None = None
 
     # ---- inputs
@@ -105,11 +106,17 @@ class Watchdog:
             return self._attitude(*roll_pitch(*orientation), now)
         return []
 
-    def command(self, vx: float, vy: float, wz: float, now: float) -> tuple[float, float, float]:
-        """A command on its way to the robot. Returns what to send: the command, or zero while latched."""
+    def command(self, vx: float, vy: float, wz: float, now: float, vz: float = 0.0) -> tuple[float, float, float]:
+        """A command on its way to the robot. Returns what to send: the command, or zero while latched. vz (a
+        drone's climb rate) counts as motion too; `vz_out()` is what may go out for it."""
         self._cmd_t = now
         self._cmd = (float(vx), float(vy), float(wz))
+        self._vz = float(vz)
         return ZERO if self.latched else self._cmd
+
+    def vz_out(self) -> float:
+        """The vertical command that may go to the robot: the last one, or zero while latched."""
+        return 0.0 if self.latched else self._vz
 
     # ---- the loop
     def step(self, now: float) -> list[Alert]:
@@ -144,7 +151,7 @@ class Watchdog:
             return False, why
         was = self.reason
         self.latched, self.reason, self.latched_t = False, None, None
-        self._cmd, self._cmd_t = ZERO, now  # a command from before the reset is not resumed
+        self._cmd, self._vz, self._cmd_t = ZERO, 0.0, now  # a command from before the reset is not resumed
         self._tilt_since = None
         self._alert(Alert(now, "reset", f"reset (was: {was or 'not latched'})", False))
         return True, "ok"
@@ -155,7 +162,7 @@ class Watchdog:
 
     # ---- internals
     def _moving(self) -> bool:
-        return any(abs(v) > self.cfg.moving_eps for v in self._cmd)
+        return any(abs(v) > self.cfg.moving_eps for v in (*self._cmd, self._vz))
 
     def _attitude(self, roll: float, pitch: float, now: float) -> list[Alert]:
         self.roll, self.pitch = float(roll), float(pitch)

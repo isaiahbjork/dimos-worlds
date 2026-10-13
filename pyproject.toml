@@ -28,6 +28,7 @@ go2-lot-night = "dimos_worlds.lot.blueprint:go2_lot_night"
 lot-cctv = "dimos_worlds.lot.cctv:LotCctv"
 warehouse-arm = "dimos_worlds.arm.blueprint:warehouse_arm"
 go2-plant = "dimos_worlds.plant.blueprint:go2_plant"
+drone-dock = "dimos_worlds.dock.blueprint:drone_dock"
 
 [build-system]
 requires = ["hatchling"]

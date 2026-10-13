@@ -7,7 +7,7 @@ Sim worlds for [DimOS](https://github.com/dimensionalOS/dimos), shipped as DimOS
 - **Shared-world fleet.** A Go2 and a G1 (or two of each) in one MuJoCo world, each on its own policy timestep, each with its own DimOS planner, and costmaps that show each robot the other.
 - **Navigation-level coordination.** A DimOS module between goals and the planners: right of way from the planned paths, hold short of a shared stretch, yield to a pocket in head-on meetings, automatic retries, deadlock swap, and settling at the goal pose. No goal resends by hand.
 - **Demo plant.** 56 x 36 m process plant (control room, three pumps, compressor, tank bund, pipe rack) with 7 analog gauges, motors, valves and drip trays whose readings come from scripted events (`gauge_high`, `gauge_low`, `motor_hot`, `valve_wrong`, `leak`), a known-occupancy prior map, and a Blender render service for photoreal frames from any pose.
-- **Drone dock.** A Dock 3-class docking station (two covers, each on a linear actuator modelled as a closed chain) and the M4D-class quadcopter that lives in it, built to DJI's published dimensions as generated meshes and a MuJoCo model; attachable into any MuJoCo world (an example puts it on the night lot's office roof).
+- **Drone dock.** A Dock 3-class docking station (two covers, each on a linear actuator modelled as a closed chain) and the M4D-class quadcopter that lives in it, built to DJI's published dimensions as generated meshes and a MuJoCo model; attachable into any MuJoCo world (an example puts it on the night lot's office roof); the `drone-dock` blueprint flies it from DimOS, launch and landing through the covers, behind the safety watchdog.
 - **Arm cell (optional).** A KUKA iiwa 14 on the warehouse pedestal, positional IK pick and place of a tote, as its own DimOS module.
 - **Safety watchdog.** A DimOS module between a robot's commands and the robot: stops and latches on a fall or tilt, a lost command link, or stale odometry/IMU, and stays stopped until an explicit reset.
 - **Deterministic replay.** A command log plus periodic state hashes. A sim run re-executes bit-identically.
@@ -59,6 +59,7 @@ Blueprints register under the `dimos.blueprints` entry-point group, so DimOS fin
 
 ```
 $ dimos list | grep dimos-worlds
+  dimos-worlds.drone-dock
   dimos-worlds.go2-lot-night
   dimos-worlds.go2-plant
   dimos-worlds.go2-warehouse
@@ -75,6 +76,7 @@ dimos --viewer none run dimos-worlds.warehouse-fleet-4  # the same with four: Go
 dimos --viewer none run dimos-worlds.warehouse-arm      # the iiwa arm cell on its own (add it to warehouse-fleet the same way)
 dimos --viewer none run dimos-worlds.go2-lot-night      # Go2 in the night lot: prior map, named places, events
 dimos --viewer none run dimos-worlds.go2-lot-night dimos-worlds.lot-cctv   # ... plus the six CCTV cameras
+dimos --viewer none run dimos-worlds.drone-dock         # drone dock + quadcopter: launch/land through the covers, dock cameras
 ```
 
 Every robot in these blueprints drives through its own safety watchdog ([Safety watchdog](#safety-watchdog)); `DIMOS_WORLDS_SAFETY=0` leaves it out.
@@ -185,7 +187,7 @@ DimOS (0.0.14) has no Go2 fall detection and no stop on a lost command link in i
 
 A trip latches: from then on the watchdog sends zero velocity, on every tick and in place of every command, until a reset (`reset` RPC, or `True` on `safety_reset`). A reset is refused while roll or pitch is above 15 degrees or odometry or the IMU is stale, and a command from before the reset is not resumed. Every trip, reset and refused reset is published on `safety_alert` (JSON: `t`, `kind`, `message`, `latched`, ...) and handed to `watchdog.on_alert` callbacks in-process; `safety_stopped` carries the latch.
 
-Every shipped blueprint inserts it, one per robot: `warehouse-fleet` and `warehouse-fleet-4` between each robot's MovementManager (and the coordinator's settling commands) and the sim (`{id}/cmd_vel_unsafe` -> watchdog -> `{id}/cmd_vel`; alerts on `{id}/safety_alert`, latch on `{id}/safety_stopped`, reset with `True` on `{id}/safety_reset`), `go2-warehouse` and `go2-lot-night` between MovementManager and the Go2 connection. `DIMOS_WORLDS_SAFETY=0` in the environment of `dimos run` builds them without it. A teleop source must keep sending while it wants motion (the dead-man): a single key press that sends one command trips `link_lost` after 0.5 s.
+Every shipped blueprint inserts it, one per robot: `warehouse-fleet` and `warehouse-fleet-4` between each robot's MovementManager (and the coordinator's settling commands) and the sim (`{id}/cmd_vel_unsafe` -> watchdog -> `{id}/cmd_vel`; alerts on `{id}/safety_alert`, latch on `{id}/safety_stopped`, reset with `True` on `{id}/safety_reset`), `go2-warehouse` and `go2-lot-night` between MovementManager and the Go2 connection, `drone-dock` between `/cmd_vel` and the quadcopter ([`drone-dock` blueprint](#drone-dock-blueprint)). `DIMOS_WORLDS_SAFETY=0` in the environment of `dimos run` builds them without it. A teleop source must keep sending while it wants motion (the dead-man): a single key press that sends one command trips `link_lost` after 0.5 s.
 
 Live, `dimos --viewer none run dimos-worlds.warehouse-fleet-4`, macOS (Apple Silicon, under heavy load from other jobs), one run: all four sent across the warehouse at once (each goal once), all arrived, no alert. Then the Go2 and G1 sent on again and the second G1 sent walking; 6 s later an 80 N m roll push on its trunk (`sim_push`): `fall` 0.38 s after the push (roll -22, pitch -67 degrees), the second G1 stayed put (0.004 m in the 20 s after the sim stood it back up) while the other two arrived. Then the second Go2 driven by a 10 Hz teleop stream on `go2b/tele_cmd_vel` (`dimos-worlds-send --every 0.1`) and the sender killed mid-walk: `link_lost` 0.49 s later, stopped (0.38 m while braking, 0.0 m in the next 10 s), no alert on any other robot. Both reset over `{id}/safety_reset`; the second G1 then walked to a new goal. `dimos-worlds-replay` matched all 36 state hashes of that run, the push included.
 
@@ -245,7 +247,7 @@ The IK is positional (tool tip position, tool pointing straight down at a fixed 
 
 ## Drone dock
 
-![Dock 3-class station closed, open with the M4D-class quadcopter on the pad, and the quadcopter lifting off. MuJoCo render](docs/media/dock-station.jpg)
+![Dock 3-class station closed, open with the M4D-class quadcopter on the pad, and the quadcopter lifting off. Cycles render of the generated meshes, posed by the MuJoCo model](docs/media/dock-station.jpg)
 
 `dimos_worlds.dock` is a drone docking station and its quadcopter in MuJoCo: generic models (not DJI products, not endorsed by DJI, no logos or marks) built to the dimensions DJI publishes for its Dock 3 and Matrice 4D. Every number in `dock/spec.json` carries its source (a DJI spec page or manual, a measurement on DJI's dimensioned drawings, or an estimate marked UNVERIFIED); the source URLs are in [`dock/README.md`](src/dimos_worlds/dock/README.md#sources). No mesh file is committed: `shapes.py` builds every mesh with manifold3d on first use.
 
@@ -263,7 +265,28 @@ sim.takeoff(3.0); sim.land(); sim.close(); sim.run_until_idle()
 jpeg = sim.feed_jpeg("dock_internal")   # also dock_external (fisheye), drone_wide
 ```
 
-`fixture.attach_dock(spec, pos, yaw_deg, prefix)` puts the station and quadcopter into any `MjSpec` (bodies, joints, cameras renamed with `prefix`); `DockSim.from_model(model, prefix)` drives it there. Closing is refused while the quadcopter is in the cover sweep. The quadcopter is held by a force/torque controller (it launches and lands with real contacts; it is not a flight-dynamics model). The dock is not in a DimOS blueprint yet: no robot commands go through it. Measured on macOS arm64 (`python -m dimos_worlds.dock.check`): closed envelope within 3 mm of DJI's 640 x 745 x 770 mm (L x W x H, gauge and RTK module included), covers open and close in 5.02 s, landing 0.5 mm off the pad centre, 30 mm between the parked quadcopter and the closed covers. Open length is 1736 mm against DJI's 1760 (DJI's own drawings disagree there by 12-19 mm), and the 5 s cover travel is an estimate: DJI publishes none.
+`fixture.attach_dock(spec, pos, yaw_deg, prefix)` puts the station and quadcopter into any `MjSpec` (bodies, joints, cameras renamed with `prefix`); `DockSim.from_model(model, prefix)` drives it there. Closing is refused while the quadcopter is in the cover sweep. The quadcopter is held by a force/torque controller (it launches and lands with real contacts; it is not a flight-dynamics model). Measured on macOS arm64 (`python -m dimos_worlds.dock.check`): closed envelope within 3 mm of DJI's 640 x 745 x 770 mm (L x W x H, gauge and RTK module included), covers open and close in 5.02 s, landing 0.5 mm off the pad centre, 30 mm between the parked quadcopter and the closed covers. Open length is 1736 mm against DJI's 1760 (DJI's own drawings disagree there by 12-19 mm), and the 5 s cover travel is an estimate: DJI publishes none.
+
+### `drone-dock` blueprint
+
+`DroneDock` (`dock/module.py`) runs the station and quadcopter in headless MuJoCo at real time, with the pilot (`dock/pilot.py`) doing launch and landing through the covers: covers open (5 s), climb (at least 3.5 m, so the covers can close under it), covers close once the quadcopter is 3 m clear; back over the pad at 3 m, covers open, descend, touch down, motors off, covers close.
+
+```
+dimos --viewer none run dimos-worlds.drone-dock
+dimos-worlds-send /dock_command 'String("launch 4")'      # also: land, open, close, hold, goto X Y Z
+dimos-worlds-send /cmd_vel 'Twist(linear=Vector3(1.0, 0.0, 0.3), angular=Vector3(0.0, 0.0, 0.0))' --every 0.1 --for 2
+dimos topic echo /dock_state String                       # phase, covers, cover angle, position, safety latch
+```
+
+| stream | type | |
+|---|---|---|
+| `dock_command` (in) | String | `launch [alt_m]`, `land`, `open`, `close`, `hold`, `goto x y z` |
+| `cmd_vel` (in) | Twist | world-frame velocity, `linear.z` climbs, `angular.z` yaws; at 10 Hz or more while moving |
+| `odom` | PoseStamped | the quadcopter's pose, 20 Hz |
+| `dock_state`, `dock_status` | String | JSON state at 2 Hz and on every change; phases, `ok <command>`, `error: <why>` |
+| `dock_internal_image`, `dock_external_image`, `drone_image` | Image | the three cameras, 1 frame/s each (`feed_fps`); dock cameras fisheye (`feed_lens="stream"` for the dewarped view) |
+
+`/cmd_vel` goes through a `SafetyWatchdog` (robot `drone`) to the dock's `drone_cmd_vel`; the watchdog reads the dock's `odom` (attitude from its orientation, no IMU). A trip (tilt past 40 degrees, a sender that goes quiet for 0.5 s while asking for motion, stale odometry) latches; the dock gets `safety_stopped`, holds the quadcopter where it is, and refuses launch, goto and velocity until `/safety_reset`. Landing stays allowed. The watchdog now passes `linear.z` through (and zeroes it with the rest). `DIMOS_WORLDS_SAFETY=0` wires `/cmd_vel` straight to the dock. The pilot has its own 0.5 s velocity dead-man, a 60 m geofence around the pad and a 1 m floor above it. Measured live on macOS arm64 (`dimos run`, sim at real time): launch to 4 m in 9.0-9.1 s after the command (5 s of it the covers), a 1.5 m/s velocity stream cut mid-flight tripped `link_lost` 0.51-0.55 s after the last command (two runs) and the quadcopter held 1.3 m further on (momentum and the hold's overshoot); land from 5 m up and 4.2 m out: parked 14.5 s after the command; 3 camera streams at 1 frame/s alongside 20 Hz odometry. Not a flight-dynamics model (see Limitations).
 
 ## Replay
 
@@ -326,7 +349,7 @@ Assets are fetched at build time into `*/assets/cache/`, never committed. `downl
 - **Plant gauge rounds assume a PTZ head.** The camera is 0.32 m up on an assumed pan-tilt-zoom payload (tilt to 70 degrees, optical zoom to 4x), UNVERIFIED on hardware; `--stock-camera` uses the Go2's own camera (body pitch, digital zoom). Pan, tilt and the last turn toward a dial are render-only: the sim dog does not pitch and does not walk the final yaw. DimOS's planner stops within about 0.25 m of a goal, so moves shorter than 1 m are overshot by 0.25 m. Rendered frames are not camera captures.
 - **The gauge reader needs OpenCV 5 with contrib.** DimOS 0.0.14 installs `opencv-contrib-python` 4.x (it pins `<5`); gauge-rounds needs OpenCV 5.x with the contrib modules. Having both installed works (cv2 5.0.0 resolved to the contrib build in our run), but pip can leave mixed versions; check `python -c "import cv2; print(cv2.__version__); cv2.ximgproc"`.
 - **The plant has run on Linux only.** `go2-plant`, the render service and the gauge loop have run on Ubuntu 22.04 x86_64 (RTX 3090, Cycles CUDA); on macOS only `tests/test_plant.py` has run.
-- **Drone dock: kinematics and contacts, not aerodynamics.** Each cover swings on one fitted hinge (end poses match DJI's drawings, the path between is approximate). The cover travel time and several hidden depths are estimates (UNVERIFIED, labelled in `dock/spec.json`). Only `tests/test_dock.py` and the lot-roof example have run (macOS arm64); the dock has no DimOS module.
+- **Drone dock: kinematics and contacts, not aerodynamics.** Each cover swings on one fitted hinge (end poses match DJI's drawings, the path between is approximate). The cover travel time and several hidden depths are estimates (UNVERIFIED, labelled in `dock/spec.json`). The `drone-dock` blueprint has run live on macOS arm64 only; its CI test drives the module in-process at 10x real time.
 - **MuJoCo visuals are boxes with flat lighting.** Fine for pipelines and change detection, not for judging what a real night camera sees.
 - **Lot CCTV frames are rendered, not recorded.** Camera model parameters are typical datasheet values, UNVERIFIED against any specific camera.
 
